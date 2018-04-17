@@ -1,0 +1,45 @@
+{% extends "templates/base.html" %}
+{% block content %}
+{% slcomment "Site Admin's Dashboard" %}
+<div class="row">
+    <div class="col-md-6" id="d1" style="height:320px"></div>
+    <div class="col-md-6" id="c1" style="height:320px"></div>
+</div>
+<div class="row"><div class="col-md-12" style="height: 50px"></div></div>
+<div class="row">
+    <div class="col-md-6" id="c2" style="height:320px"></div>
+    <div class="col-md-6" id="c3" style="height:320px"></div>
+</div>
+{% endblock %}
+{% block foot %}
+<script>
+    $(document).ready(function() {
+        var mo_full = ["January","February","March","April","May","June","July","August","September","October","November","December"],
+            mo_abbr = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+            now = new Date();
+        var sdata = [];
+        var cdata = [];
+        var noshows = [];
+        for (var i = now.getMonth()+1; i < now.getMonth()+13; i++) {
+            var tot = Math.round(Math.random()*40+50),
+                used = Math.round(tot*Math.random()),
+                name = mo_abbr[i%12]+' '+(i < 12 ? '2014' : '2015');
+            sdata.push({name:name, data:[used,tot-used]});
+            cdata.push({name:name, data:[Math.round(tot*(1+Math.random()))]});
+            noshows.push({name:name, data:[]});
+        };
+
+        Charts.createGauge("d1",140,0,200,mo_full[now.getMonth()]+' '+now.getFullYear(),'Appointment Slots',false);
+        Charts.colChart("c1",{title: "Appointment Slots", subtitle: "Total / Used", ttitle: "Total Slots", categories: ["Used Slots","Unused Slots"], data: sdata, filename:"AppointmentSlots"});
+        Charts.colChart("c2",{title: "Contacts", subtitle: "Total contacts", ttitle: "Total Contacts", categories: ["Contacts"], data: cdata, filename:"Contacts"});
+        Charts.colChart("c3",{title: "Appointments", subtitle: "Attended vs. No-Shows", ttitle: "Total Appointments", categories: ["Appointments Made","Appointments Missed"], data: sdata, filename:"Appointments"});
+    });
+</script>
+{% endblock %}
+
+{% block head %}
+{% include "funcs/charts.html" %}
+{% endblock %}
+
+Historic # contacts made/month & contacts so far (include %?)
+Historic and current appointments vs. no-shows

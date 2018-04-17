@@ -1,0 +1,181 @@
+{% extends "templates/base.html" %}
+{% block content %}
+<h2>View Family</h2>
+<form class="crisp">
+    <fieldset>
+    <div class="row">
+        <section class="col col-5">
+            <h4>Parents/Guardians</h4>
+        </section>
+        <section class="col col-2"></section>
+        <section class="col col-5">
+            <h4>Children</h4>
+        </section>
+    </div>
+    <div class="row">
+        <section id="pg" class="col col-5" style="padding: 3px;border: 1px solid #aaa">
+        {% for g in guardians %}
+            <div class="row">
+                <section class="col col-9">
+                    <span>{{g.name}}</span>
+                </section>
+                <section class="col col-3">
+                    <span>{{g.dob|date:"MM/dd/yyyy"}}</span>
+                </section>
+            </div>
+        {% endfor %}
+        </section>
+        <section class="col col-2"></section>
+        <section id="kids" class="col col-5" style="padding: 3px;border: 1px solid #aaa">
+        {% for k in children %}
+            <div class="row">
+                <section class="col col-5">
+                    <span>{{k.name}}</span>
+                </section>
+                <section class="col col-3">
+                    <span>{{k.dob|date:"MM/dd/yyyy"}}</span>
+                </section>
+                <section class="col col-4">
+                    <span>{{k.school}}</span>
+                </section>
+            </div>
+        {% endfor %}
+        </section>
+    </div>
+    </fieldset>
+
+    <fieldset><legend>Contact Information</legend>
+    <div class="row">
+        <section class="col col-6">
+            <span>{{family.street1}}</span>
+        </section>
+        <section class="col col-3">
+            <span>{{family.city}}</span>
+        </section>
+        <section class="col col-3">
+            <span>{{family.zipcode}}</span>
+        </section>
+    </div>
+
+    <div class="row">
+        <section class="col col-4">
+            <h4>Email Addresses</h4>
+        </section>
+        <section class="col col-1"></section>
+        <section class="col col-4 ">
+            <h4>Telephone Numbers</h4>
+        </section>
+    </div>
+    <div class="row">
+        <section id="emails" class="col col-4" style="padding: 3px;border: 1px solid #aaa">
+        {% for e in emails %}
+            <div class="row">
+                <section class="col col-8">
+                    <span>{{e.email_address}}</span>
+                </section>
+                <section class="col col-3">
+                    <span>{{e.email_address_type}}</span>
+                </section>
+            </div>
+        {% endfor %}
+        </section>
+        <section class="col col-1"></section>
+        <section id="telephone_numbers" class="col col-4" style="padding: 3px;border: 1px solid #aaa">
+        {% for t in telephones %}
+            <div class="row">
+                <section class="col col-7">
+                    <span>{{t.telephone_number}}</span>
+                </section>
+                <section class="col col-5">
+                    <span>{{t.telephone_type}}</span>
+                </section>
+            </div>
+        {% endfor %}
+        </section>
+    </div>
+    </fieldset>
+
+    <fieldset><legend>Demographics</legend>
+    <div class="row">
+        <section class="col col-4">
+            <label>Ethnicity</label>
+            <div>{{family.ethnicity_name}}</div>
+        </section>
+        <section class="col col-4">
+            <label>Language</label>
+            <div>{{family.language_name}}</div>
+        </section>
+        <section class="col col-4">
+            <label>Monthly Income</label>
+            <div>{{family.monthly_income|currency-format:en:US}}</div>
+        </section>
+    </div>
+    </fieldset>
+    <fieldset>
+        <legend>Notes</legend>
+        <section>
+            <label class="textarea">
+                <textarea rows="10" class="disabled custom-scroll" disabled>{{family.notes}}</textarea>
+            </label>
+        </section>
+    </fieldset>
+    <fieldset>
+        <section>
+            <label class="checkbox-inline">
+                <input disabled type="checkbox" name="family[consent_signed]" {% if family.consent_signed %}checked{% endif %}>&nbsp;Consent form signed?
+            </label>
+        </section>
+    </fieldset>
+    <fieldset><legend>Family History</legend>
+        <table class="table table-bordered sorted" data-sortlist="[[0,1],[1,1]]">
+            <col style="width:10%">
+            <col style="width:10%">
+            <col style="width:50%">
+            <col style="width:20%">
+            <col style="width:10%">
+            <thead>
+                <tr>
+                    <th>Case ID</th>
+                    <th data-date-format="mmddyyyy">Date</th>
+                    <th>Services Provided<br/>
+                        <table class="table inner-table">
+                            <col style="width:25%"><col style="width:40%"><col style="width:35%">
+                            <tr><td>Member</td><td>Service</td><td>Coverage Type</td></tr>
+                        </table>
+                    </th>
+                    <th>Notes</th>
+                    <th>User</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for h in history %}
+                <tr>
+                    <td>{{h.case_id}}</td>
+                    <td>{{h.contacted_at|date:"MM/dd/yyyy"}}</td>
+                    <td>
+                        <table class="table inner-table">
+                            <col style="width:25%"><col style="width:40%"><col style="width:35%">
+                            {% for s in h.services %}
+                            <tr><td>{{s.name}}</td><td>{{s.service_provided}}</td><td>{{s.coverage_type}}</td></tr>
+                            {% endfor %}
+                        </table>
+                    </td>
+                    <td>{{h.notes}}</td>
+                    <td>{{h.user.first_name}} {{h.user.last_name}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </fieldset>
+    <fieldset>
+        <div class="row">
+            <section class="col col-4">
+                <a href="/families/{{family.id}}/edit" class="btn btn-default">Edit Family Record</a>
+            </section>
+            <section class="col col-4">
+                <a href="/contacts/{{family.id}}/new" class="btn btn-default">New Contact</a>
+            </section>
+        </div>
+    </fieldset>
+</form>
+{% endblock %}

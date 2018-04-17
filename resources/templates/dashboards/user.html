@@ -1,0 +1,74 @@
+{% extends "templates/base.html" %}
+{% block content %}
+{% slcomment "Global User's Dashboard (i.e. SSA)" %}
+<h3>Contacts</h3>
+<div class="row">
+    <div class="col-md-4" id="c1" style="height:320px"></div>
+    <div class="col-md-4" id="c2" style="height:320px"></div>
+    <div class="col-md-4" id="c3" style="height:320px"></div>
+</div>
+<h3>Appointments Made / Missed</h3>
+<div class="row">
+    <div class="col-md-4" id="c4" style="height:320px"></div>
+    <div class="col-md-4" id="c5" style="height:320px"></div>
+    <div class="col-md-4" id="c6" style="height:320px"></div>
+</div>
+<h3>Appointments by Assister Type</h3>
+<div class="row">
+    <div class="col-md-3" id="c7" style="height:240px"></div>
+    <div class="col-md-3" id="c8" style="height:240px"></div>
+    <div class="col-md-3" id="c9" style="height:240px"></div>
+    <div class="col-md-3" id="c10" style="height:240px"></div>
+</div>
+{% endblock %}
+{% block foot %}
+<script>
+    $(document).ready(function() {
+
+        var mo_full = ["January","February","March","April","May","June","July","August","September","October","November","December"],
+            mo_abbr = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+            now = new Date();
+        var sdata = [];
+        var cdata = [];
+        var bytype = [];
+        for (var i = now.getMonth()+1; i < now.getMonth()+13; i++) {
+            var tot = Math.round(Math.random()*40+50),
+                used = Math.round(tot*Math.random()),
+                name = mo_abbr[i%12]+' '+(i < 12 ? '2014' : '2015');
+            var pcts = [], pt = 0;
+            for (var j = 0; j < 5; j++) { var r = Math.random(); pcts.push(r); pt += r;}
+            for (var j = 0; j < 5; j++) { pcts[j] = Math.round(pcts[j]*tot/pt);}
+            if (i == now.getMonth()+12) {
+                cdata.push({name:name, data:[{y: Math.round(tot*(1+Math.random())), color:'#3c3'}]});
+                sdata.push({name:name, data:[{y: used, color: 'red'},{y: tot-used, color: 'green'}]});
+            } else {
+                cdata.push({name:name, data:[Math.round(tot*(1+Math.random()))]});
+                sdata.push({name:name, data:[used,tot-used]});
+            }
+            bytype.push({name:name, data:pcts});
+        };
+
+        Charts.colChart("c1",{title: "Oakland", subtitle: "Contacts Made", categories: ["Contacts"], data: cdata, highlightLast:true});
+        Charts.colChart("c2",{title: "Hayward", subtitle: "Contacts Made", categories: ["Contacts"], data: cdata, highlightLast:true});
+        Charts.colChart("c3",{title: "San Leandro", subtitle: "Contacts Made", ttitle: "Total Contacts", categories: ["Contacts"], data: cdata, highlightLast:true});
+
+        Charts.colChart("c4",{title: "Oakland", subtitle: "Appointments Made / Missed", ttitle: "Total Appointments", categories: ["Appointments Made","Appointments Missed"], data: sdata, highlightLast:true});
+        Charts.colChart("c5",{title: "Hayward", subtitle: "Appointments Made / Missed", ttitle: "Total Appointments", categories: ["Appointments Made","Appointments Missed"], data: sdata, highlightLast:true});
+        Charts.colChart("c6",{title: "San Leandro", subtitle: "Appointments Made / Missed", ttitle: "Total Appointments", categories: ["Appointments Made","Appointments Missed"], data: sdata, highlightLast:true});
+
+        Charts.colChart("c7",{title: "Oakland", subtitle: "Appointments Made by Assister Type", ttitle: "Total Appointments", categories: ["ET","HIT","CEC - EBAC","CEC - Other","Program Staff"], data: bytype, highlightLast:true});
+        Charts.colChart("c8",{title: "Hayward", subtitle: "Appointments Made by Assister Type", ttitle: "Total Appointments", categories: ["ET","HIT","CEC - EBAC","CEC - Other","Program Staff"], data: bytype, highlightLast:true});
+        Charts.colChart("c9",{title: "San Leandro", subtitle: "Appointments Made by Assister Type", ttitle: "Total Appointments", categories: ["ET","HIT","CEC - EBAC","CEC - Other","Program Staff"], data: bytype, highlightLast:true});
+        Charts.colChart("c10",{title: "Total", subtitle: "Appointments Made by Assister Type", ttitle: "Total Appointments", categories: ["ET","HIT","CEC - EBAC","CEC - Other","Program Staff"], data: bytype, highlightLast:true});
+    });
+</script>
+{% endblock %}
+
+{% block head %}
+<style>
+h3 {
+    margin-top: 36px;
+}
+</style>
+{% include "funcs/charts.html" %}
+{% endblock %}

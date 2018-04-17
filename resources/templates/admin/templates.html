@@ -1,0 +1,546 @@
+{% extends "templates/base.html" %}
+{% block content %}
+{% slcomment "Todo: Add reminder schedule for each type" %}
+<style>
+.tab-pane {
+    overflow-x: hidden;
+   overflow-y:auto;
+}
+#help p {
+    margin: 12px 0px;
+}
+#help dt {
+    margin: 6px 0px 0px 0px;
+}
+#help dd {
+    margin: 0px 12px;
+}
+#help pre {
+    margin-top: 6px;
+    padding: 4px 10px;
+}
+div.panel-heading {
+    padding: 12px;
+}
+</style>
+  {% if msg %}
+    <div class="alert alert-success alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+      {{ msg }}
+    </div>
+  {% endif %}
+  {% if errors %}
+    <div class="alert alert-danger alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+      <ul>
+      {% for err in errors %}
+        <li>{{ err }}</li>
+      {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+<h2>Reminder Templates</h2>
+<form action="/admin/templates" method="POST" class="crisp">
+{% csrf-token %}
+<div role="tabpanel" style="border: 1px solid #aaa;padding:3px;margin-bottom: 12px">
+    <ul class="nav nav-tabs" role="tablist">
+      <li role="presentation" class="active"><a href="#email" aria-controls="email" role="tab" data-toggle="tab">Email</a></li>
+      <li role="presentation"><a href="#mail" aria-controls="mail" role="tab" data-toggle="tab">Mail</a></li>
+      <li role="presentation"><a href="#sms" aria-controls="sms" role="tab" data-toggle="tab">Text Messages</a></li>
+      <li role="presentation">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</li>
+      <li role="presentation"><a href="#help" aria-controls="help" role="tab" data-toggle="tab">Help</a></li>
+    </ul>
+
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="email">
+            <div class="row">
+                <section class="col col-1"></section>
+                <section class="col col-10">
+                    <h3 style="margin-top: 30px">Email Schedule</h3>
+                </section>
+            </div>
+            <div class="row">
+                <section class="col col-1"></section>
+                <section class="col col-2"><label>&nbsp;</label><label class="input"><p>Send reminder emails</p></label></section>
+                <section class="col col-1">
+                    <label>Days</label>
+                    <label class="select">
+                        <select name="email[schedule][days]">
+                            {% daysopt email.schedule.days %}
+                        </select>
+                        <i></i>
+                    </label>
+                </section>
+                <section class="col col-1">
+                    <label>Hours</label>
+                    <label class="select">
+                        <select name="email[schedule][hours]">
+                            {% hoursopt email.schedule.hours %}
+                        </select>
+                        <i></i>
+                    </label>
+                </section>
+                <section class="col col-2"><label>&nbsp;</label><label class="input"><p>before appointment.</p></label></section>
+            </div>
+            <div class="row">
+                <section class="col col-1"></section>
+                <section class="col col-10" id="emailSection">
+                    <h3 style="margin: 30px 0px">Email Templates</h3>
+                    {% if email.templates|count = 0 %}
+                    <div class="panel panel-default" style="margin: 30px 0px" data-rtid="new">
+                      <div class="panel-heading">
+                        <h3 class="panel-title">English</h3>
+                            &nbsp;&nbsp;<button class="testBtn btn btn-default">Test</button>
+                        <input type="hidden" name="email[new][language]" value="english">
+                      </div>
+                      <div class="panel-body">
+                        <textarea name="email[new][content]"></textarea>
+                      </div>
+                    </div>
+                    {% else %}
+                    {% for e in email.templates %}
+                    <div class="panel panel-default" style="margin: 30px 0px" data-rtid="{{e.id}}">
+                      <div class="panel-heading">
+                        <h3 class="panel-title">
+                            {{e.language|capitalize}}
+                            &nbsp;&nbsp;<button class="testBtn btn btn-default">Test</button>
+                            {% ifequal e.language "english" %}{% else %}
+                            <button type="button" class="delItem close" data-name="{{e.language}}" data-dname="{{e.language|capitalize}}"><span aria-hidden="true">&times;</span></button>
+                            {% endifequal %}
+                        </h3>
+                        <input type="hidden" name="email[{{e.id}}][language]" value="{{e.language}}">
+                      </div>
+                      <div class="panel-body">
+                        <textarea name="email[{{e.id}}][content]">{{e.content}}</textarea>
+                      </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </section>
+            </div>
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="mail">
+            <div class="row">
+                <section class="col col-1"></section>
+                <section class="col col-10">
+                    <h3 style="margin-top: 30px">Mail Schedule</h3>
+                </section>
+            </div>
+            <div class="row">
+                <section class="col col-1"></section>
+                <section class="col col-2"><label>&nbsp;</label><label class="input"><p>Send reminder mailing</p></label></section>
+                <section class="col col-1">
+                    <label>Days</label>
+                    <label class="select">
+                        <select name="mail[schedule][days]">
+                            {% daysopt mail.schedule.days %}
+                        </select>
+                        <i></i>
+                    </label>
+                </section>
+                <section class="col col-1">
+                    <label>Hours</label>
+                    <label class="select">
+                        <select name="mail[schedule][hours]">
+                            {% hoursopt mail.schedule.hours %}
+                        </select>
+                        <i></i>
+                    </label>
+                </section>
+                <section class="col col-2"><label>&nbsp;</label><label class="input"><p>before appointment.</p></label></section>
+            </div>
+            <div class="row">
+                <section class="col col-1"></section>
+                <section class="col col-10" id="mailSection">
+                    <h3 style="margin: 30px 0px">Mail Templates</h3>
+                    {% if mail.templates|count = 0 %}
+                    <div class="panel panel-default" style="margin: 30px 0px" data-rtid="new">
+                      <div class="panel-heading">
+                        <h3 class="panel-title">English
+                        &nbsp;&nbsp;<button class="testBtn btn btn-default">Test</button></h3>
+                        <input type="hidden" name="mail[new][language]" value="english">
+                      </div>
+                      <div class="panel-body">
+                        <textarea name="mail[new][content]"></textarea>
+                      </div>
+                    </div>
+                    {% else %}
+                    {% for m in mail.templates %}
+                    <div class="panel panel-default" style="margin: 30px 0px" data-rtid="{{m.id}}">
+                      <div class="panel-heading">
+                        <h3 class="panel-title">
+                            {{m.language|capitalize}}
+                            &nbsp;&nbsp;<button class="testBtn btn btn-default">Test</button>
+                            {% ifequal m.language "english" %}{% else %}
+                            <button type="button" class="delItem close" data-name="{{m.language}}" data-dname="{{m.language|capitalize}}"><span aria-hidden="true">&times;</span></button>
+                            {% endifequal %}
+                        </h3>
+                        <input type="hidden" name="mail[{{m.id}}][language]" value="{{m.language}}">
+                      </div>
+                      <div class="panel-body">
+                        <textarea name="mail[{{m.id}}][content]">{{m.content}}</textarea>
+                      </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </section>
+            </div>
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="sms">
+            <div class="row">
+                <section class="col col-1"></section>
+                <section class="col col-10">
+                    <h3 style="margin-top: 30px">Text Message Schedule</h3>
+                </section>
+            </div>
+            <div class="row">
+                <section class="col col-1"></section>
+                <section class="col col-2"><label>&nbsp;</label><label class="input"><p>Send reminder texts</p></label></section>
+                <section class="col col-1">
+                    <label>Days</label>
+                    <label class="select">
+                        <select name="sms[schedule][days]">
+                            {% daysopt sms.schedule.days %}
+                        </select>
+                        <i></i>
+                    </label>
+                </section>
+                <section class="col col-1">
+                    <label>Hours</label>
+                    <label class="select">
+                        <select name="sms[schedule][hours]">
+                            {% hoursopt sms.schedule.hours %}
+                        </select>
+                        <i></i>
+                    </label>
+                </section>
+                <section class="col col-2"><label>&nbsp;</label><label class="input"><p>before appointment.</p></label></section>
+            </div>
+            <div class="row">
+                <section class="col col-1"></section>
+                <section class="col col-10" id="smsSection">
+                    <h3 style="margin: 30px 0px">Text Message Templates</h3>
+                    <p>Note: Text messages should be plain text.</p>
+                    {% if sms.templates|count = 0 %}
+                    <div class="panel panel-default" style="margin: 30px 0px" data-rtid="new">
+                      <div class="panel-heading">
+                        <h3 class="panel-title">English
+                        &nbsp;&nbsp;<button class="testBtn btn btn-default">Test</button></h3>
+                        <input type="hidden" name="sms[new][language]" value="english">
+                      </div>
+                      <div class="panel-body">
+                        <label class="textarea">
+                        <textarea rows="8" name="sms[new][content]"></textarea>
+                        </label>
+                      </div>
+                    </div>
+                    {% else %}
+                    {% for s in sms.templates %}
+                    <div class="panel panel-default" style="margin: 30px 0px" data-rtid="{{s.id}}">
+                      <div class="panel-heading">
+                        <h3 class="panel-title">
+                            {{s.language|capitalize}}
+                            &nbsp;&nbsp;<button class="testBtn btn btn-default">Test</button>
+                            {% ifequal s.language "english" %}{% else %}
+                            <button type="button" class="delItem close" data-name="{{s.language}}" data-dname="{{s.language|capitalize}}"><span aria-hidden="true">&times;</span></button>
+                            {% endifequal %}
+                        </h3>
+                        <input type="hidden" name="sms[{{s.id}}][language]" value="{{s.language}}">
+                      </div>
+                      <div class="panel-body">
+                        <label class="textarea">
+                        <textarea rows="8" name="sms[{{s.id}}][content]">{{s.content}}</textarea>
+                        </label>
+                      </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </section>
+            </div>
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="help">
+            <div class="row">
+                <section class="col col-1"></section>
+                <section class="col col-8" style="margin-top:30px">
+                <h3>Help</h3>
+                <p>Create templates for the three different types of reminders that
+                the system can send out: emails, text messages, and mailings.</p>
+                <p>For each type, you can create templates in each of the languages
+                that the system supports. When the system sends its reminder(s) to
+                a particular family, it will first search for a template written in
+                the language that the family has indicated that they speak. If there
+                is no template for that language, the default English template is used.</p>
+                <p>Therefore, there needs to be an English template for each of the three types.</p>
+                <p>&nbsp;</p>
+                <h4>Variables</h4>
+                <p>In the body of the template, you can insert a variety of
+                &ldquo;variables&rdquo;, by enclosing the variable name in double
+                curly braces (for example, &lbrace;&lbrace;name&rbrace;&rbrace;).
+                When the template is being filled and sent, those variables will be
+                replaced with the current value for that particular appointment.</p>
+                <p>The variables you can use are:</p>
+                <dl>
+                    <dt>pg</dt>
+                    <dd>The parent/guardian's name, for use in a salutation:
+                    <pre>Mr. & Ms. Jenkins</pre></dd>
+                    <dt>date</dt>
+                    <dd>The date of the appointment, spelled out:
+                    <pre>January 12th, 2015</pre></dd>
+                    <dt>shortdate</dt>
+                    <dd>The date of the appointment: <pre>1/12/2015</pre></dd>
+                    <dt>time</dt>
+                    <dd>The time of the appointment: <pre>11:30 AM</pre></dd>
+                    <dt>duration</dt>
+                    <dd>How long the appointment is scheduled for:
+                    <pre>(30 minutes, 1 hour, 1 1/2 hours, 2 hours, etc)</pre></dd>
+                    <dt>assister</dt>
+                    <dd>The type of assister they are going to see, spelled out:
+                    <pre>Health Insurance Technician, Enrollment Technician, etc.</pre></dd>
+                    <dt>address</dt>
+                    <dd>The family's address, in two lines:
+                    <pre>1313 Mockingbird Lane,
+Bedrock, CA 94554</pre></dd>
+                </dl>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-2">
+        <select id="addItem" class="form-control">
+            <option selected disabled value="">Add Template</option>
+            {% for l in languages %}
+            <option value="{{l.name}}">{{l.display_name}}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-4">
+        &nbsp;&nbsp;&nbsp;
+        <button id="submit" class="btn btn-primary">Save Templates</button>
+    </div>
+</div>
+</form>
+{% endblock %}
+
+{% block head %}
+{% include "funcs/tinymce.html" %}
+{% include "funcs/bootbox.html" %}
+{% include "funcs/dot.html" %}
+
+<script type="text/template" id="new-email">
+    <div class="panel panel-default" style="margin: 30px 0px" data-rtid="new">
+      <div class="panel-heading">
+        <h3 class="panel-title">
+            <button type="button" class="delItem close" data-name="<%= it.name %>" data-dname="<%= it.display_name %>"><span aria-hidden="true">&times;</span></button>
+            <%= it.display_name %>
+            <input type="hidden" name="email[new][language]" value="<%= it.name %>">
+        </h3>
+      </div>
+      <div class="panel-body">
+        <textarea name="email[new][content]"></textarea>
+      </div>
+    </div>
+</script>
+
+<script type="text/template" id="new-mail">
+    <div class="panel panel-default" style="margin: 30px 0px" data-rtid="new">
+      <div class="panel-heading">
+        <h3 class="panel-title">
+            <button type="button" class="delItem close" data-name="<%= it.name %>" data-dname="<%= it.display_name %>"><span aria-hidden="true">&times;</span></button>
+            <%= it.display_name %>
+            <input type="hidden" name="mail[new][language]" value="<%= it.name %>">
+        </h3>
+      </div>
+      <div class="panel-body">
+        <textarea name="mail[new][content]"></textarea>
+      </div>
+    </div>
+</script>
+
+<script type="text/template" id="new-sms">
+    <div class="panel panel-default" style="margin: 30px 0px" data-rtid="new">
+      <div class="panel-heading">
+        <h3 class="panel-title">
+            <button type="button" class="delItem close" data-name="<%= it.name %>" data-dname="<%= it.display_name %>"><span aria-hidden="true">&times;</span></button>
+            <%= it.display_name %>
+            <input type="hidden" name="sms[new][language]" value="<%= it.name %>">
+        </h3>
+      </div>
+      <div class="panel-body">
+        <label class="textarea">
+        <textarea rows="8" name="sms[new][content]"></textarea>
+        </label>
+      </div>
+    </div>
+</script>
+{% endblock %}
+
+{% block foot %}
+<script type="text/javascript">
+var btn = null;
+$(document).ready(function() {
+    var lingos = { {% for l in languages %}"{{l.name}}": "{{l.display_name}}", {% endfor %} };
+    var templates = {};
+    var tconfig =    {
+            selector: "textarea",
+            menubar: false,
+            statusbar: false,
+            height: 250,
+            plugins: "preview,print,paste",
+         };
+
+    bootbox.setDefaults({show: true, animate:false});
+
+    $("#email textarea").tinymce(tconfig);
+    $("#mail textarea").tinymce(tconfig);
+
+    $("div.tab-pane").height(473);
+
+    $("script[type='text/template']").each(function(idx,item) {
+        var el = $(item);
+        var elId = el.attr('id');
+        var txt = el.html();
+        templates[elId] = doT.template(txt);
+    });
+
+    function addItem(root,tpl,data,tiny) {
+        var el = $(root);
+        var res = el.append(templates[tpl](data)).find("textarea").last();
+        if (tiny) {
+            res.tinymce(tconfig);
+        } else {
+            res.focus();
+        }
+    }
+
+    $("#addItem").on('change', function(e) {
+        e.preventDefault();
+        // Find active pane
+        var sel = $(":selected",this),
+            lang = sel.val(),
+            dlang = sel.text(),
+            aid = $("div.tab-pane.active").attr('id');
+        $(this).val("");
+        addItem("#"+aid+"Section","new-"+aid,{name: lang, display_name: dlang},(aid != "sms"));
+        updateDD();
+    });
+
+    $("button.testBtn").on('click',function(e) {
+        e.preventDefault();
+        tinyMCE.triggerSave();
+        var url = "/api/reminder_test";
+        var prompts = {"email":"Email address to send to: ", "sms":"Phone number to send text to: "};
+        var tpl = $(this).parent().parent().siblings().find("textarea").val();
+        var language = $(this).parent().siblings().val();
+        var ttype = $("div.tab-pane.active").attr("id");
+        if (tpl == null || tpl == "") {
+            bootbox.alert("Please enter a template to test.");
+            return;
+        }
+        if (ttype == "mail") {
+            if ($.fileDownload) {
+                $.fileDownload(url, {
+                    httpMethod: "POST",
+                    data: {
+                        "template": tpl,
+                        "language": language,
+                        "type": ttype,
+                        "to": res
+                    },
+                    successCallback: function(uri) {
+                        // hi
+                    },
+                    failCallback: function(response, uri) {
+                        // ho
+                    }
+                });
+            } else {
+                console.log(tpl);
+            }
+        } else {
+            bootbox.prompt(prompts[ttype],function(res) {
+                if (res && res !== "") {
+                    $.ajax({
+                        type: "POST",
+                        url: url,
+                        data: {
+                            "template": tpl,
+                            "language": language,
+                            "type": ttype,
+                            "to": res
+                        },
+                        headers: {"X-CSRF-Token": $("#__anti-forgery-token").val()},
+                        success: function (data, status, jqXHR) {
+                            bootbox.alert("Success");
+                        },
+                        error: function (jqXHR,status,errorStr) {
+                            bootbox.alert("Error: "+errorStr);
+                        }
+                    });
+                } else {
+                    if (res == "") bootbox.alert("Please enter a valid "+(ttype=="email" ? "email address" : "phone number")+".");
+                }
+            });
+        }
+    })
+
+    $(document).on('click','button.delItem',function(e) {
+        var btn = $(this),
+            name = btn.data('name'),
+            dname = btn.data('dname'),
+            type = $("ul.nav-tabs li.active").text(),
+            itemType = $("ul.nav-tabs li.active a").attr("href").slice(1),
+            panel = btn.closest("div.panel"),
+            parent = panel.parent(),
+            itemId = panel.data("rtid");
+        bootbox.confirm("Delete "+dname+" "+type+" template?",function(result) {
+            if (result) {
+                if (itemId != "new") {
+                    parent.append("<input type='hidden' name='"+itemType+"[del]' value='"+itemId+"'>");
+                }
+                panel.remove();
+                updateDD();
+            };
+        });
+    });
+
+    function updateDD() {
+        var newMenu = "#"+$("div.tab-pane.active").attr('id');
+        var dd = $("#addItem");
+        // Clear dropdown
+        $("option:not(:selected)",dd).remove();
+        if (newMenu != "#help") {
+            dd.prop('disabled',false);
+            var panel = $(newMenu);
+            var used = $("button.delItem",panel).map(function(idx,el) { return $(el).data("name"); });
+            // Iterate through lingos, removing english and any in used, and add to drop-down
+            for (var l in lingos) {
+                if (l != "english" && $.inArray(l,used) == -1) {
+                    dd.append('<option value="'+l+'">'+lingos[l]+"</option>");
+                }
+            }
+        } else {
+            dd.prop('disabled',true);
+        }
+    };
+
+    // When a new tab is selected, update the drop-down
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        updateDD();
+    });
+
+
+    $("#submit").click(function(e) {
+        // re-enabled disabled selects so that their values are passed in the form
+        $("select:disabled").prop('disabled',false)
+        tinyMCE.triggerSave();
+    });
+
+    updateDD("#email");
+});
+</script>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "templates/base.html" %}
+{% block content %}
+  {% if msg %}
+    <div class="alert alert-success alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+      {{ msg }}
+    </div>
+  {% endif %}
+<table class="sorted table table-bordered table-hover">
+    <caption><h1>Site Listing</h1></caption>
+    <thead>
+        <tr><th>Name</th><th>Phone #</th><th>Address</th><th>Admin(s)</th></tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <td colspan="2" class="pager">
+                    <i class="first glyphicon glyphicon-fast-backward"></i>
+                    <i class="prev glyphicon glyphicon-step-backward"></i>
+                    <select class="gotoPage"></select><span class="pagedisplay"></span>
+                    <i class="next glyphicon glyphicon-step-forward"></i>
+                    <i class="last glyphicon glyphicon-fast-forward"></i>
+                    &nbsp;&nbsp;&nbsp;
+                    <i class="glyphicon glyphicon-list-alt"></i> <select class="pagesize">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                    </select>
+            </td>
+            <td colspan="2"></td>
+        </tr>
+    </tfoot>
+    <tbody>
+{% for site in sites %}
+        <tr>
+            <td><a href="/admin/sites/{{ site.id }}">{{ site.name }}</a></td>
+            <td>{{ site.phone }}</td>
+            <td>{{ site.street1 }}, {{ site.city }}, CA {{ site.zip }}</td>
+            <td>{% for admin in site.admins %}<a href="/admin/users/{{ admin }}">{{ admin }}</a>&nbsp;{% endfor %}</td>
+        </tr>
+{% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "templates/base.html" %}
+{% block content %}
+  {% if errors %}
+    <div class="alert alert-danger alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+      <ul>
+      {% for err in errors %}
+        <li>{{ err }}</li>
+      {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+  <h2>Edit user details for {{edit_user.id}}</h2>
+  <form class="form-horizontal" action="{{servlet-context}}/admin/users/{{ edit_user.id }}" method="POST">
+    {% csrf-token %}
+      <h2><small>Change contact Information</small></h2>
+    <div class="form-group">
+      <label for="first-name" class="col-sm-2 control-label">First Name</label>
+      <div class="col-sm-3">
+        <input class="form-control" id="first-name" name="first-name" tabindex="1" type="text" value="{{edit_user.first_name}}">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="last-name" class="col-sm-2 control-label">Last Name</label>
+      <div class="col-sm-3">
+        <input class="form-control" id="last-name" name="last-name" tabindex="1" type="text" value="{{edit_user.last_name}}">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="email" class="col-sm-2 control-label">Email Address</label>
+      <div class="col-sm-3">
+        <input class="form-control" id="email" name="email" tabindex="1" type="email" value="{{edit_user.email}}">
+      </div>
+    </div>
+    <p>&nbsp;</p>
+    <h2><small>Change Password</small></h2>
+    <div class="form-group">
+      <label for="oldpass" class="col-sm-2 control-label">Current Password</label>
+      <div class="col-sm-3">
+        <input class="form-control" id="oldpass" name="oldpass" tabindex="4" type="password" placeholder="Enter current password">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="pass1" class="col-sm-2 control-label">New Password</label>
+      <div class="col-sm-3">
+        <input class="form-control" id="pass1" name="pass1" tabindex="5" type="password" placeholder="Enter new password">&nbsp;
+        <input class="form-control" id="pass2" name="pass2" tabindex="6" type="password" placeholder="Confirm new password">
+      </div>
+    </div>
+    <p>&nbsp;</p>
+    <h2><small>Change Role</small></h2>
+    <div class="form-group">
+      <label for="role" class="col-sm-2 control-label">Select Role</label>
+      <div class="col-sm-3">
+        <select class="form-control" id="role" name="role" tabindex="7">
+          {% ifequal user.role "admin" %}
+          <optgroup label='Global Roles'>
+          <option value="admin">Global Administrator</option>
+          <option value="user">User</option>
+          <option value="evaluator">Evaluator</option>
+          </optgroup>
+          <optgroup label='Site Roles'>
+          {% endifequal %}
+          <option value="health-clerk">Health Clerk</option>
+          <option value="site-user">Site User</option>
+          <option value="site-admin">Site Administrator</option>
+          <option value="technician">Technician</option>
+          {% ifequal user.role "admin" %}
+          </optgroup>
+          {% endifequal %}
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <input class="btn" tabindex="8" type="submit" value="Update User">
+    </div>
+  </form>
+
+  <script type="text/javascript">
+  $(document).ready(function() {
+    $("#first-name").focus();
+  });
+  </script>
+{% endblock %}

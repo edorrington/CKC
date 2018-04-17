@@ -1,0 +1,18 @@
+#!/bin/sh
+TS=`date +%Y%m%d%H%M%S`
+DIR=`dirname $0`/../migrations/
+
+declare -a FILES
+FILES=()
+SER=1
+for i in $*; do
+	NM=$i
+	MIG=${TS}${SER}-${NM}
+	FILES+=(${DIR}/${MIG}.up.sql)
+	FILES+=(${DIR}/${MIG}.down.sql)
+	echo "-- ${MIG}.up.sql" >> ${DIR}/${MIG}.up.sql
+	echo "DROP TABLE ${NM};" >> ${DIR}/${MIG}.down.sql
+    SER=`expr ${SER} + 1`
+done
+vi ${FILES[*]}
+

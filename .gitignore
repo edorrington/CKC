@@ -1,0 +1,14 @@
+/target
+/lib
+/classes
+/checkouts
+/tmp
+pom.xml
+*.jar
+*.class
+/.lein-*
+/.env
+*.log
+/profiles.clj
+/.idea
+*.iml

@@ -1,0 +1,82 @@
+{% extends "templates/base.html" %}
+{% block content %}
+  {% if errors %}
+    <div class="alert alert-danger alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+      <ul>
+      {% for err in errors %}
+        <li>{{ err }}</li>
+      {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+  <h2>Edit details for the {{edit_site.name}} site</h2>
+  <form class="form-horizontal" action="{{servlet-context}}/admin/sites/{{ edit_site.id }}" method="POST">
+    {% csrf-token %}
+      <fieldset><legend>Site Information</legend>
+    <div class="form-group">
+      <label for="name" class="col-sm-2 control-label">Site Name</label>
+      <div class="col-sm-3">
+        <input class="form-control" id="name" name="name" tabindex="1" type="text" value="{{edit_site.name}}">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="street1" class="col-sm-2 control-label">Street 1</label>
+      <div class="col-sm-3">
+        <input class="form-control" id="street1" name="street1" tabindex="2" type="text" value="{{edit_site.street1}}">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="street2" class="col-sm-2 control-label">Street 2</label>
+      <div class="col-sm-3">
+        <input class="form-control" id="street2" name="street2" tabindex="3" type="text" value="{{edit_site.street2}}">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="city" class="col-sm-2 control-label">City</label>
+      <div class="col-sm-3">
+        <input class="form-control" id="city" name="city" tabindex="4" value="{{edit_site.city}}">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="zip" class="col-sm-2 control-label">Zipcode</label>
+      <div class="col-sm-3">
+        <input class="form-control" id="zip" name="zip" tabindex="5" value="{{edit_site.zip}}">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="phone" class="col-sm-2 control-label">Telephone #</label>
+      <div class="col-sm-3">
+        <input class="form-control" id="phone" name="phone" tabindex="6" value="{{edit_site.phone}}">
+      </div>
+    </div>
+    </fieldset>
+    <fieldset><legend>Site Administrator</legend>
+    <div class="form-group">
+      <label for="site-admin" class="col-sm-2 control-label">Select</label>
+      <div class="col-sm-3">
+        <select class="form-control" name="site-admin" tabindex="7">
+        {% for u in site_users %}
+          <option value="{{u.id}}" {% ifequal u.role "site-admin" %}selected{% endifequal %}>
+            {{u.first_name}} {{u.last_name}}
+          </option>
+        {% endfor %}
+        </select>
+      </div>
+    </div>
+    </fieldset>
+    <fieldset>
+    <div class="row"><div class="col-md-12">&nbsp;</div></div>
+    <div class="form-group">
+      <input class="btn btn-primary" tabindex="8" type="submit" value="Update Site">
+    </div>
+    </fieldset>
+  </form>
+
+
+  <script type="text/javascript">
+  $(document).ready(function() {
+    $("#name").focus();
+  });
+  </script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "templates/base.html" %}
+{% block content %}
+{% slcomment "Site Admin's Dashboard" %}
+<div class="row">
+    <div class="col-md-3" id="d1" style="height:250px"></div>
+    <div class="col-md-3" id="d2" style="height:250px"></div>
+    <div class="col-md-3" id="d3" style="height:250px"></div>
+    <div class="col-md-3" id="d4" style="height:250px"></div>
+</div>
+<div class="row">
+    <div class="col-md-6" id="c1" style="height:340px"></div>
+    <div class="col-md-6" id="c2" style="height:340px"></div>
+</div>
+<div class="row">
+    <div class="col-md-12" id="glc" style="height:240px"></div>
+</div>
+{% endblock %}
+{% block foot %}
+<script>
+var layout;
+    $(document).ready(function() {
+        Charts.createGauge("d1",140,0,200,'December','Appointments',false);
+        Charts.createGauge("d2",175,0,200,'December','Contacts',false);
+        Charts.createGauge("d3",14,0,100,'Appts/Contacts','Percent',false);
+        Charts.createGauge("d4",48,0,5000,'December','Events',false);
+
+        Charts.colChart("c1","Activity","December","Number",[{x:"Contacts",y: 50},{x:"Appointments",y:120},{x:"Events",y:300}]);
+        Charts.colChart("c2","Activity","YTD","Number",[{x:"Contacts",y: 50},{x:"Appointments",y:420},{x:"Events",y:300}]);
+    });
+</script>
+{% endblock %}
+
+{% block head %}
+{% include "funcs/charts.html" %}
+{% endblock %}
+
+Appointment slots total & remaining for month
+Historic slots total/used
+Historic # contacts made/month & contacts so far (include %?)
+Historic and current appointments vs. no-shows

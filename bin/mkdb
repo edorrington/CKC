@@ -1,0 +1,15 @@
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+	RETURNS TRIGGER AS $$
+	BEGIN
+	   NEW.updated_at = current_timestamp;
+	   RETURN NEW;
+	END;
+	$$ language 'plpgsql';
+
+CREATE OR REPLACE FUNCTION array_search(needle ANYELEMENT, haystack ANYARRAY)
+RETURNS INT AS $$
+    SELECT i
+      FROM generate_subscripts($2, 1) AS i
+     WHERE $2[i] = $1
+  ORDER BY i
+$$ LANGUAGE sql STABLE;

@@ -1,0 +1,8 @@
+CREATE TABLE audit_records (
+    id SERIAL PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL REFERENCES users(id),
+    site_id INT NOT NULL REFERENCES sites(id),
+    executed_at TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
+    kind TEXT NOT NULL DEFAULT 'database',
+    what TEXT NOT NULL
+);

@@ -1,0 +1,148 @@
+html,
+body {
+	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    height: 100%;
+    padding-top: 30px;
+}
+footer {
+    padding-top: 60px;
+}
+
+footer div.container {
+    margin-top: 10px;
+}
+
+/* Add space to anchors to move them below the fixed navbar at the top */
+div.container a.anchor {
+    display: block;
+    position: relative;
+    top: -100px;
+    visibility: hidden;
+}
+
+#profile_dd {
+  padding: 0px !important;
+}
+
+div.jumbotron {
+  margin-top: 70px;
+}
+
+/* Class that makes its object unselectable */
+.unselectable {
+-webkit-user-select: none; /* Chrome/Safari */
+-moz-user-select: none; /* Firefox */
+-ms-user-select: none; /* IE10+ */
+-o-user-select: none;
+user-select: none;
+}
+
+input.typeahead {
+  width: 352px;
+  height: 30px;
+  padding: 8px 12px;
+  font-size: 24px;
+  line-height: 30px;
+  border: 2px solid #ccc;
+  -webkit-border-radius: 8px;
+     -moz-border-radius: 8px;
+          border-radius: 8px;
+  outline: none;
+  background-color: #fff;
+}
+
+input.typeahead:focus {
+  border: 2px solid #0097cf;
+}
+
+
+.crisp .icon-append.icon-xs, .crisp .icon-prepend.icon-xs {
+  position: absolute;
+  top: 3px;
+  width: 18px;
+  height: 18px;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center; }
+
+.crisp .icon-append.icon-lg, .crisp .icon-prepend.icon-lg {
+  position: absolute;
+  top: 7px;
+  width: 30px;
+  height: 30px;
+  font-size: 17px;
+  line-height: 30px;
+  text-align: center; }
+
+.crisp .input .icon-prepend.icon-lg + input, .crisp .textarea .icon-prepend.icon-lg + textarea {
+  padding-left: 44px; }
+
+.crisp .input .icon-append.icon-lg + input, .crisp .textarea .icon-append.icon-lg + textarea {
+  padding-right: 44px; }
+
+.crisp .input .icon-prepend.icon-lg + .icon-append.icon-lg + input, .crisp .textarea .icon-prepend.icon-lg + .icon-append.icon-lg + textarea {
+  padding-left: 44px; }
+
+.crisp .input .icon-prepend.icon-xs + input, .crisp .textarea .icon-prepend.icon-xs + textarea {
+  padding-left: 32px; }
+
+.crisp .input .icon-append.icon-xs + input, .crisp .textarea .icon-append.icon-xs + textarea {
+  padding-right: 32px; }
+
+.crisp .input .icon-prepend.icon-xs + .icon-append.icon-xs + input, .crisp .textarea .icon-prepend.icon-xs + .icon-append.icon-xs + textarea {
+  padding-left: 32px; }
+
+.crisp .has-error input {
+  border-color: #a94442;
+}
+.crisp .has-error label {
+  color: #a94442;
+}
+.crisp .has-error .icon-prepend {
+  color: #a94442;
+}
+
+.crisp .has-warning input {
+  border-color: #8a6d3b;
+}
+.crisp .has-warning label {
+  color: #8a6d3b;
+}
+.crisp .has-warning .icon-prepend {
+  color: #8a6d3b;
+}
+
+.crisp .has-success input {
+  border-color: #3c763d;
+}
+.crisp .has-success label {
+  color: #3c763d;
+}
+.crisp .has-success .icon-prepend {
+  color: #3c763d;
+}
+
+table.table thead tr {
+  background-color: #f0f0f0;
+  color: #333;
+}
+table.table tfoot tr {
+  background-color: #f8f8f8;
+  color: #333;
+}
+table.table caption {
+  font-size: 30px;
+  font-weight: 300;
+  padding: 12px;
+}
+
+table.table {
+    table-layout: fixed;
+}
+
+table.inner-table td {
+  padding: 3px !important;
+}
+table.inner-table tr:first-child td {
+  border: 0px solid #fff !important;
+}

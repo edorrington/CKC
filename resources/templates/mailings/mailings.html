@@ -1,0 +1,100 @@
+{% extends "templates/base.html" %}
+{% block content %}
+{% if errors %}
+<div class="alert alert-danger alert-dismissible" role="alert">
+  <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+  <ul>
+  {% for err in errors %}
+    <li>{{ err }}</li>
+  {% endfor %}
+  </ul>
+</div>
+{% endif %}
+<form action="/mailings/run" method="POST">
+{% csrf-token %}
+<table class="sorted table table-bordered table-hover crisp">
+    <caption>
+        <h2>Reminder Mailings</h2>
+    </caption>
+    <thead>
+        <tr>
+            <th style="width:10%" data-sorter="false">
+                Send?&nbsp;&nbsp;<i class="fa fa-check-square-o"></i>
+            </th>
+            <th style="width:15%">Start Time</th>
+            <th style="width:15%">End Time</th>
+            <th style="width:45%">Appointment</th>
+            <th style="width:15%">Assister</th>
+        </tr>
+    </thead>
+
+    <tfoot>
+        <tr>
+        {% if outstanding|count >= 10 %}
+            <td colspan="3" class="pager">
+                    <i class="first glyphicon glyphicon-fast-backward"></i>
+                    <i class="prev glyphicon glyphicon-step-backward"></i>
+                    <select class="gotoPage"></select><span class="pagedisplay"></span>
+                    <i class="next glyphicon glyphicon-step-forward"></i>
+                    <i class="last glyphicon glyphicon-fast-forward"></i>
+                    &nbsp;&nbsp;&nbsp;
+                    <i class="glyphicon glyphicon-list-alt"></i> <select class="pagesize">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                    </select>
+            </td>
+            <td colspan="2"></td>
+        {% else %}
+            <td colspan="5"></td>
+        {% endif %}
+        </tr>
+    </tfoot>
+
+    <tbody>
+    {% for o in outstanding %}
+        <tr>
+            <td style="text-align:center">
+                <label class="checkbox"><input type="checkbox" checked name="send" value="{{o.id}}"><i style="margin-left:40%"></i></label>
+            </td>
+            <td data-text='{{o.start_time|date:"YYYYMMdd"}}'>{{o.start_time|date:"MMM dd, yyyy HH:mm a"}}</td>
+            <td data-text='{{o.end_time|date:"YYYYMMdd"}}'>{{o.end_time|date:"MMM dd, yyyy HH:mm a"}}</td>
+            <td>{{o.title}}</td>
+            <td>{{o.type}}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<fieldset>
+    <div class="row">
+        <div class="col-md-2">
+            <button class="btn btn-primary" id="sendBtn">Generate Mailing</button>
+        </div>
+        <div class="col-md-10">
+            <div class="alert alert-success alert-dismissible" role="alert" style="display:none">
+              <button type="submit" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+              <div id="sendMsg">Successfully sent.</div>
+            </div>
+        </div>
+    </div>
+</fieldset>
+</form>
+{% endblock %}
+
+{% block head %}
+{% include "funcs/tablesorter.html" %}
+{% include "funcs/icons.html" %}
+{% endblock %}
+
+{% block foot %}
+<script type="text/javascript">
+$(document).ready(function() {
+    $("#error").hide();
+    $("i.fa-check-square-o").parent().on('click',function(e) {
+        var all = $("input[type='checkbox']").length;
+        var on = $("input[type='checkbox']:checked").length;
+        $("input[type='checkbox']").prop('checked',all != on);
+    });
+});
+</script>
+{% endblock %}

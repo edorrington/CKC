@@ -1,0 +1,424 @@
+{% extends "templates/base.html" %}
+{% block content %}
+  {% if errors %}
+    <div class="alert alert-danger alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+      <ul>
+      {% for err in errors %}
+        <li>{{ err }}</li>
+      {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+<h2>New Contact</h2>
+
+<form class="crisp" action="{{servlet-context}}/contacts/{{case.id}}/new" method="POST">
+    {% csrf-token %}
+    <input type="hidden" name="_method" value="PUT">
+    <input type="hidden" name="redir" value="{{referer}}">
+    <fieldset>
+        <div class="row">
+            <section class="col col-3">
+                <label>Contact Type</label>
+                <label class="select">
+                <select class="contact_type_category" name="contact_type_category">
+                    <option value="" disabled selected>Please Choose&hellip;</option>
+                {% for cat in contact_type_categories %}
+                    <option value="{{cat.id}}">{{cat.name}}</option>
+                {% endfor %}
+                </select>
+                <i></i>
+                </label>
+            </section>
+            <section class="col col-3">
+                <label>&nbsp;</label>
+                <label class="select">
+                <select class="contact_type" name="contact_type">
+                <option value="" disabled selected>Please Choose&hellip;</option>
+                </select>
+                <i></i>
+                </label>
+            </section>
+            <section class="col col-3">
+                <label>Case Status</label>
+                <label class="select">
+                <select id="bb_cs" name="status">
+                {% for cs in case_statuses %}
+                {% opt cs.name case.status %}{{cs.name}}{% endopt %}
+                {% endfor %}
+                </select>
+                <i></i>
+                </label>
+            </section>
+            <section class="col col-3">
+                <label>How they found us</label>
+                <label class="input">
+                <input type="text" name="referred_from" value="{{case.referred_from}}">
+                </label>
+            </section>
+        </div>
+        <div id="schedule_appt">
+            <div class="row">
+                <section class="col col-4">
+                    <label>Schedule Appointment</label>
+                    <label class="input">
+                    <i class="icon-prepend fa fa-calendar"></i>
+                    <input type="text" data-provide="datepicker" data-date-start-date="-0d" data-date-today-highlight="true" data-date-autoclose="true" name="appointment[date]">
+                    </label>
+                </section>
+                <section class="col col-3">
+                    <label>Time</label>
+                    <label class="select">
+                    <select name="appointment[time]">
+                        <option value="" disabled selected>Choose</option>
+                        <option value="06:00">06:00 AM</option><option value="06:30">06:30 AM</option><option value="07:00">07:00 AM</option><option value="07:30">07:30 AM</option><option value="08:00">08:00 AM</option><option value="08:30">08:30 AM</option><option value="09:00">09:00 AM</option><option value="09:30">09:30 AM</option><option value="10:00">10:00 AM</option><option value="10:30">10:30 AM</option><option value="11:00">11:00 AM</option><option value="11:30">11:30 AM</option><option value="12:00">12:00 PM</option><option value="12:30">12:30 PM</option><option value="13:00">01:00 PM</option><option value="13:30">01:30 PM</option><option value="14:00">02:00 PM</option><option value="14:30">02:30 PM</option><option value="15:00">03:00 PM</option><option value="15:30">03:30 PM</option><option value="16:00">04:00 PM</option><option value="16:30">04:30 PM</option><option value="17:00">05:00 PM</option><option value="17:30">05:30 PM</option><option value="18:00">06:00 PM</option><option value="18:30">06:30 PM</option><option value="19:00">07:00 PM</option><option value="19:30">07:30 PM</option>
+                    </select>
+                    <i></i>
+                    </label>
+                </section>
+                <section class="col col-3">
+                    <label>Duration</label>
+                    <label class="select">
+                    <select name="appointment[duration]">
+                        <option>0:30</option>
+                        <option selected>1:00</option>
+                        <option>1:30</option>
+                        <option>2:00</option>
+                    </select>
+                    <i></i>
+                    </label>
+                </section>
+                <section class="col col-2">
+                    <label>Assister</label>
+                    <label class="select">
+                    <select name="appointment[type]">
+                        <option value="" selected disabled>Choose</option>
+                        {% for a in assisters %}
+                        <option>{{a.name}}</option>
+                        {% endfor %}
+                    </select>
+                    <i></i>
+                    </label>
+                </section>
+            </div>
+            <div class="row">
+                <section class="col col-3">
+                    <strong>Reminders:</strong>
+                </section>
+                <section class="col col-3">
+                    <label class="checkbox">
+                      <input type="checkbox" name="appointment[r_email]"><i></i> Email
+                    </label>
+                </section>
+                <section class="col col-3">
+                    <label class="checkbox">
+                      <input type="checkbox" name="appointment[r_mail]"><i></i> Mail
+                    </label>
+                </section>
+                <section class="col col-3">
+                    <label class="checkbox">
+                      <input type="checkbox" name="appointment[r_sms]"><i></i> Text Message
+                    </label>
+                </section>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset><legend><button id="addReferral" class="btn btn-xs btn-primary"><i class="fa fa-plus"></i></button>&nbsp;Referrals</legend>
+        <table class="table table-bordered table-hover">
+            <col style="width:3%">
+            <col style="width:37%">
+            <col style="width:60%">
+            <tbody>
+                <tr>
+                    <td><a href="#" class="deleteReferral"><i class="fa fa-minus"></i></a></td>
+                    <td>
+                        <label class="select">
+                        <select name="referrals_provided">
+                            <option value="" disabled selected>Referral Provided</option>
+                            {% for svc in family_services %}
+                            <option>{{svc}}</option>
+                            {% endfor %}
+                        </select>
+                        <i></i>
+                        </label>
+                    </td>
+                    <td>
+                        <label class="input">
+                        <input class="notes" type="text" name="referral_notes" placeholder="Notes">
+                        </label>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </fieldset>
+
+    <fieldset><legend>Application Services Provided</legend>
+        <table class="table table-bordered">
+            <col style="width:3%">
+            <col style="width:20%">
+            <col style="width:2%">
+            <col style="width:22%">
+            <col style="width:18%">
+            <col style="width:35%">
+            <thead>
+                <tr>
+                    <th><i class="fa fa-plus"></i></th>
+                    <th>Family Member</th>
+                    <th colspan="4">Services, Coverage & Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mem in members %}
+                <tr>
+                    <td rowspan="1"><a href="#" class="addService" data-memberid="{{mem.id}}"><i class="fa fa-plus"></i></a></td>
+                    <td rowspan="1">
+                        {% ifequal mem.member_type "guardian" %}<i class="fa fa-user"></i>{% else %}<i class="fa fa-child"></i>{% endifequal %}&nbsp;{{mem.name}}
+                    </td>
+                     <td style="border-right:none">
+                     <a href="#" class="deleteService"><i class="fa fa-minus"></i></a>
+                     </td>
+                    <td style="border-left:none">
+                        <label class="select">
+                        <select name="members[{{mem.id}}][service_provided]">
+                            <option value="" disabled selected>Service Provided</option>
+                            {% for svc in member_services %}
+                            {% ifequal svc "SAR-7" %}{% slcomment sigh %}
+                            <option value="" disabled>──────────────</option>
+                            {% endifequal %}
+                            <option>{{svc}}</option>
+                            {% endfor %}
+                        </select>
+                        <i></i>
+                        </label>
+                    </td>
+                    <td>
+                        <label class="select">
+                        <select name="members[{{mem.id}}][coverage_type]">
+                            <option value="" disabled selected>Coverage</option>
+                            {% for cvg in coverages %}
+                            <option>{{cvg.name}}</option>
+                            {% endfor %}
+                        </select>
+                        <i></i>
+                        </label>
+                    </td>
+                    <td>
+                        <label class="input">
+                        <input class="notes" type="text" name="members[{{mem.id}}][notes]" placeholder="Notes">
+                        </label>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </fieldset>
+
+    <fieldset>
+        <div class="row">
+            <section class="col col-2"><strong>Consent form signed?</strong></section>
+            <section class="col col-8">
+                <label class="checkbox">
+                    <input type="checkbox" name="consent_signed" {% if consent_signed %}checked{% endif %}><i></i>
+                </label>
+            </section>
+        </div>
+    </fieldset>
+
+    <fieldset><legend>Contact Notes</legend>
+        <label class="textarea">
+            <textarea name="notes" rows="8" placeholder="Notes"></textarea>
+        </label>
+    </fieldset>
+
+    <fieldset><legend>Case History</legend>
+        <table class="table table-bordered sorted" data-sortlist="[[0,1]]">
+            <col style="width:10%">
+            <col style="width:45%">
+            <col style="width:35%">
+            <col style="width:10%">
+            <thead>
+                <tr>
+                    <th data-date-format="mmddyyyy">Date</th>
+                    <th>Services Provided</th>
+                    <th>Notes</th>
+                    <th>User</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for h in history %}
+                <tr>
+                    <td>{{h.contacted_at|date:"MM/dd/yyyy"}}</td>
+                    <td>{{h.services}}</td>
+                    <td>{{h.notes}}</td>
+                    <td>{{h.user.first_name}} {{h.user.last_name}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </fieldset>
+    <fieldset>
+        <a href="{{referer}}" class="btn btn-default">Cancel</a>
+        &nbsp;&nbsp;&nbsp;
+        <button class="btn btn-primary" type="submit">Create Contact</button>
+    </fieldset>
+    </form>
+{% endblock %}
+
+{% block head %}
+{% include "funcs/datepicker.html" %}
+{% include "funcs/icons.html" %}
+{% include "funcs/dot.html" %}
+{% endblock %}
+
+{% block foot %}
+<script>
+$(document).ready(function () {
+    $("#schedule_appt").hide();
+    var newRef = doT.template($("#newReferral").html());
+    var newSvc = doT.template($("#newService").html());
+
+    $("#addReferral").on("click",function(e) {
+        e.preventDefault();
+        $(this).parent().siblings("table").find("tbody").append(newRef());
+    });
+
+    $("body").on("click","a.deleteReferral",function(e) {
+        e.preventDefault();
+        $(this).parent().parent().remove();
+    });
+
+    $("a.addService").on("click",function(e) {
+        e.preventDefault();
+        var row = $(this).parentsUntil("tbody").last();
+        var rs = row.find("td[rowspan]");
+        rs.attr("rowspan",parseInt(rs.attr("rowspan"))+1);
+        row.after(newSvc({memberid: $(this).data("memberid")}));
+    });
+
+    $("body").on("click","a.deleteService",function(e) {
+        e.preventDefault();
+        var el = $(this),
+            row = el.parentsUntil("tbody").last();
+        if ($("td[rowspan]",row).length > 0) {
+            var col = el.parent();
+            col.nextAll().remove();
+            col.remove();
+        } else {
+            var mainRow = row.prevUntil("tr td[rowspan]").last();
+            var rs = mainRow.find("td[rowspan]");
+            var curr = parseInt(rs.attr("rowspan"));
+            rs.attr("rowspan",curr-1);
+            row.remove();
+        }
+    });
+
+    function resetSched() {
+        // Reset and hide
+        $("#schedule_appt input[type='text']").val(null);
+        $("#schedule_appt select").prop("selectedIndex",0);
+        $("#schedule_appt select[name='appointment[duration]']").prop("selectedIndex",1);
+        $("#schedule_appt input[type='checkbox']").prop('checked',false);
+        $("#schedule_appt").hide();
+    };
+
+    $("body").on('change','select.contact_type_category',function(e) {
+        var itemsForCategory = {{contact_types|safe}};
+        var catid = $("option:selected",this).val();
+        var items = itemsForCategory[catid];
+        var el = $("select.contact_type");
+        el.empty();
+        el.append('<option value="" disabled selected>Please Choose&hellip;</option>');
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            el.append('<option data-cs="'+item.suggested_case_status+'" value="'+item.id+'" data-appt="'+item.appointment+'">'+item.name+'</option>');
+        };
+        resetSched();
+        el.focus();
+    });
+
+    $("body").on('change','select.contact_type',function(e) {
+        var appt = $("option:selected",this).data('appt');
+        var new_status = $("option:selected",this).data('cs');
+        if (new_status) {
+            $("#bb_cs").val(new_status);
+        }
+        if (appt) {
+            $("#schedule_appt").show();
+        } else {
+            resetSched();
+        }
+    });
+
+    $("form").submit(function() {
+        var notefields = $("input.notes");
+        for (var i = 0; i < notefields.length; i++) {
+            var f = $(notefields[i]),
+                v = f.val();
+            if (v === undefined || v === "")
+                f.attr("name",null);
+        }
+    });
+});
+</script>
+
+<script type="text/template" id="newReferral">
+                <tr>
+                    <td><a href="#" class="deleteReferral"><i class="fa fa-minus"></i></a></td>
+                    <td>
+                        <label class="select">
+                        <select name="referrals_provided">
+                            <option value="" disabled selected>Referral Provided</option>
+                            {% for svc in family_services %}
+                            <option>{{svc}}</option>
+                            {% endfor %}
+                        </select>
+                        <i></i>
+                        </label>
+                    </td>
+                    <td>
+                        <label class="input">
+                        <input class="notes" type="text" name="referral_notes" placeholder="Notes">
+                        </label>
+                    </td>
+                </tr>
+</script>
+
+<script type="text/template" id="newService">
+                <tr>
+                    <td style="border-right:none">
+                        <a href="#" class="deleteService"><i class="fa fa-minus"></i></a>
+                    </td>
+                    <td style="border-left:none">
+                        <label class="select">
+                        <select name="members[<%= it.memberid %>][service_provided]">
+                            <option value="" disabled selected>Service Provided</option>
+                            {% for svc in member_services %}
+                            {% ifequal svc "SAR-7" %}{% slcomment sigh %}
+                            <option value="" disabled>──────────────</option>
+                            {% endifequal %}
+                            <option>{{svc}}</option>
+                            {% endfor %}
+                        </select>
+                        <i></i>
+                        </label>
+                    </td>
+                    <td>
+                        <label class="select">
+                        <select name="members[<%= it.memberid %>][coverage_type]">
+                            <option value="" disabled selected>Coverage</option>
+                            {% for cvg in coverages %}
+                            <option>{{cvg.name}}</option>
+                            {% endfor %}
+                        </select>
+                        <i></i>
+                        </label>
+                    </td>
+                    <td>
+                        <label class="input">
+                        <input class="notes" type="text" name="members[<%= it.memberid %>][notes]" placeholder="Notes">
+                        </label>
+                    </td>
+                </tr>
+</script>
+{% endblock %}

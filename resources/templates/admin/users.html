@@ -1,0 +1,72 @@
+{% extends "templates/base.html" %}
+{% block content %}
+  {% if msg %}
+    <div class="alert alert-success alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+      {{ msg }}
+    </div>
+  {% endif %}
+<table class="sorted table table-bordered table-hover">
+    <caption><h1>User Listing</h1></caption>
+    <thead>
+        <tr>
+            <th style="width: 10%">ID</th>
+            <th style="width: 15%">Last</th>
+            <th style="width: 15%">First</th>
+            <th>Email</th>
+            <th style="width: 10%">Role</th>
+            {% ifequal user.role "admin" %}<th style="width:15%">Site</th>{% endifequal %}</tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <td colspan="2" class="pager">
+                    <i class="first glyphicon glyphicon-fast-backward"></i>
+                    <i class="prev glyphicon glyphicon-step-backward"></i>
+                    <select class="gotoPage"></select><span class="pagedisplay"></span>
+                    <i class="next glyphicon glyphicon-step-forward"></i>
+                    <i class="last glyphicon glyphicon-fast-forward"></i>
+                    &nbsp;&nbsp;&nbsp;
+                    <i class="glyphicon glyphicon-list-alt"></i> <select class="pagesize">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                    </select>
+
+            </td>
+            {% ifequal user.role "admin" %}<td colspan="4">{% else %}<td colspan="3">{% endifequal %}</td>
+        </tr>
+    </tfoot>
+    <tbody>
+{% for u in users %}
+        <tr>
+            <td><a href="/admin/users/{{ u.id }}">{{ u.id }}</a></td>
+            <td>{{ u.last_name }}</td>
+            <td>{{ u.first_name }}</td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.role|capitalize }}</td>
+            {% ifequal user.role "admin" %}
+            <td>
+                {% ifequal u.role "admin" %}
+                Global User
+                {% else %}
+                    {% ifequal u.role "user" %}
+                Global User
+                    {% else %}
+                        {% ifequal u.role "evaluator" %}
+                Global User
+                        {% else %}
+                <a href="/admin/sites/{{ u.site_id }}">{{ u.site_name }}</a>
+                        {% endifequal %}
+                    {% endifequal %}
+                {% endifequal %}
+            </td>
+            {% endifequal %}
+        </tr>
+{% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block head %}
+{% include "funcs/tablesorter.html" %}
+{% endblock %}

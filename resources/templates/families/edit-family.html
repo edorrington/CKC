@@ -1,0 +1,403 @@
+{% extends "templates/base.html" %}
+{% block content %}
+  {% if errors %}
+    <div class="alert alert-danger alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+      <ul>
+      {% for err in errors %}
+        <li>{{ err }}</li>
+      {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+<h2>Edit Family</h2>
+<form class="crisp" action="{{servlet-context}}/families/{{ family.id }}" method="POST">
+    {% csrf-token %}
+    <input type="hidden" name="redir" value="{{referer}}">
+    <fieldset>
+    <div class="row">
+        <section class="col col-5">
+            <h4>Parents/Guardians
+            <span class="pull-right"><button class="btn btn-xs" id="addPG"><i class="fa fa-plus"></i></button></span></h4>
+        </section>
+        <section class="col col-1"></section>
+        <section class="col col-6">
+            <h4>Children
+            <span class="pull-right"><button class="btn btn-xs" id="addKid"><i class="fa fa-plus"></i></button></span></h4>
+        </section>
+    </div>
+    <div class="row">
+        <section id="pg" class="col col-5" style="padding: 3px;border: 1px solid #aaa">
+        {% for g in guardians %}
+            <div class="row">
+                <section class="col col-1" style="padding-right:0px;padding-left:14px">
+                    <a href="#" class="delItem" data-did="{{g.id}}" data-dtype="member"><i class="fa fa-times"></i></a>
+                    <a href="#" class="ddSortName"><i class="fa fa-toggle-up"></i></a>
+                </section>
+                <section class="col col-8">
+                    <label class="input">
+                    <input type="text" name="member[{{g.id}}][name]" value="{{g.name}}">
+                    </label>
+                    <label class="input sortName" style="margin-top:6px">
+                    <input type="text" name="member[{{g.id}}][sortname]" value="{{g.sortname}}" placeholder="Sort Name">
+                    </label>
+                </section>
+                <section class="col col-3">
+                    <label class="input">
+                    <i class="icon-prepend fa fa-calendar"></i>
+                    <input type="text" data-provide="datepicker" data-date-autoclose="true" name="member[{{g.id}}][dob]" value="{{g.dob|date:"MM/dd/yyyy"}}"/>
+                    </label>
+                </section>
+                <input type="hidden" name="member[{{g.id}}][member_type]" value="{{g.member_type}}">
+                <input type="hidden" name="member[{{g.id}}][school]" value=""/>
+            </div>
+        {% endfor %}
+        </section>
+        <section class="col col-1"></section>
+        <section id="kids" class="col col-6" style="padding: 3px;border: 1px solid #aaa">
+        {% for k in children %}
+            <div class="row">
+                <section class="col col-1" style="padding-right:0px;padding-left:14px">
+                <a href="#" class="delItem" data-did="{{k.id}}" data-dtype="member"><i class="fa fa-times"></i></a>
+                    <a href="#" class="ddSortName"><i class="fa fa-toggle-up"></i></a>
+                </section>
+                <section class="col col-4">
+                    <label class="input">
+                    <input type="text" name="member[{{k.id}}][name]" value="{{k.name}}">
+                    </label>
+                    <label class="input sortName" style="margin-top:6px">
+                    <input type="text" name="member[{{k.id}}][sortname]" value="{{k.sortname}}" placeholder="Sort Name">
+                    </label>
+                </section>
+                <section class="col col-3">
+                    <label class="input">
+                    <i class="icon-prepend fa fa-calendar"></i>
+                    <input type="text" data-provide="datepicker" data-date-autoclose="true" name="member[{{k.id}}][dob]" value="{{k.dob|date:"MM/dd/yyyy"}}"/>
+                    </label>
+                </section>
+                <section class="col col-4">
+                    <label class="select">
+                    <select name="member[{{k.id}}][school]">
+                        {% schools k.school %}
+                    </select>
+                    <i></i>
+                    </label>
+                </section>
+                <input type="hidden" name="member[{{k.id}}][member_type]" value="{{k.member_type}}">
+            </div>
+        {% endfor %}
+        </section>
+    </div>
+    </fieldset>
+
+    <fieldset><legend>Contact Information</legend>
+    <div class="row">
+        <section class="col col-6">
+            <label class="input"><input type="text" name="family[street1]" value="{{family.street1}}"></label>
+        </section>
+        <section class="col col-3">
+            <label class="input"><input type="text" name="family[city]" value="{{family.city}}"></label>
+        </section>
+        <section class="col col-3">
+            <label class="input"><input type="text" name="family[zipcode]" value="{{family.zipcode}}"></label>
+        </section>
+    </div>
+
+    <div class="row">
+        <section class="col col-4">
+            <h4>Email Addresses
+            <span class="pull-right"><button class="btn btn-xs" id="addEmail"><i class="fa fa-plus"></i></button></span></h4>
+        </section>
+        <section class="col col-1"></section>
+        <section class="col col-4 ">
+            <h4>Telephone Numbers
+            <span class="pull-right"><button class="btn btn-xs" id="addTel"><i class="fa fa-plus"></i></button></span></h4>
+        </section>
+    </div>
+    <div class="row">
+        <section id="emails" class="col col-4" style="padding: 3px;border: 1px solid #aaa">
+        {% for e in emails %}
+            <div class="row">
+                <section class="col col-1"><a href="#" class="delItem" data-did="{{e.id}}" data-dtype="email_address"><i class="fa fa-times"></i></a></section>
+                <section class="col col-7">
+                    <label class="input">
+                    <input type="email" name="email_address[{{e.id}}][name]" value="{{e.email_address}}">
+                    </label>
+                </section>
+                <section class="col col-3">
+                    <label class="select">
+                    <select name="email_address[{{e.id}}][type]">
+                    {% for eat in email_address_types %}
+                    {% opt eat e.email_address_type %}{{eat}}{% endopt %}
+                    {% endfor %}
+                    </select>
+                    <i></i>
+                    </label>
+                </section>
+            </div>
+        {% endfor %}
+        </section>
+        <section class="col col-1"></section>
+        <section id="telephone_numbers" class="col col-4" style="padding: 3px;border: 1px solid #aaa">
+        {% for t in telephones %}
+            <div class="row">
+                <section class="col col-1"><a href="#" class="delItem" data-did="{{t.id}}" data-dtype="telephone_number"><i class="fa fa-times"></i></a></section>
+                <section class="col col-6">
+                    <label class="input">
+                    <input type="text" name="telephone_number[{{t.id}}][name]" value="{{t.telephone_number}}">
+                    </label>
+                </section>
+                <section class="col col-5">
+                    <label class="select">
+                    <select name="telephone_number[{{t.id}}][type]">
+                    {% for tt in telephone_types %}
+                    {% opt tt t.telephone_type %}{{tt}}{% endopt %}
+                    {% endfor %}
+                    </select>
+                    <i></i>
+                    </label>
+                </section>
+            </div>
+        {% endfor %}
+        </section>
+    </div>
+    </fieldset>
+
+    <fieldset><legend>Demographics</legend>
+    <div class="row">
+        <section class="col col-4">
+            <label>Ethnicity</label>
+            <label class="select">
+            <select name="family[ethnicity]">
+            {% for eth in ethnicities %}
+            {% opt eth.name family.ethnicity %}{{eth.display_name}}{% endopt %}
+            {% endfor %}
+            </select>
+            <i></i>
+            </label>
+        </section>
+        <section class="col col-4">
+            <label>Language</label>
+            <label class="select">
+            <select name="family[language]">
+            {% for l in languages %}
+            {% opt l.name family.language %}{{l.display_name}}{% endopt %}
+            {% endfor %}
+            </select>
+            <i></i>
+            </label>
+        </section>
+        <section class="col col-4">
+            <label>Monthly Income</label>
+            <label class="input">
+            <input type="number" name="family[monthly_income]" value="{{family.monthly_income}}" min="0" step="100">
+            </label>
+        </section>
+    </div>
+    </fieldset>
+    <fieldset>
+        <legend>Notes</legend>
+        <section>
+            <label class="textarea">
+                <textarea rows="10" class="custom-scroll" name="family[notes]">{{family.notes}}</textarea>
+            </label>
+        </section>
+    </fieldset>
+    <fieldset>
+        <section>
+            <label class="checkbox">
+                <input type="checkbox" name="family[consent_signed]" {% if family.consent_signed %}checked{% endif %}><i></i>&nbsp;Consent form signed?
+            </label>
+        </section>
+    </fieldset>
+    <fieldset>
+        <a href="{{referer}}" class="btn btn-default">Cancel</a>
+        &nbsp;&nbsp;&nbsp;
+        <button class="btn btn-primary" type="submit">Save Changes</button>
+    </fieldset>
+</form>
+{% endblock %}
+
+{% block head %}
+{% include "funcs/bootbox.html" %}
+{% include "funcs/dot.html" %}
+{% include "funcs/icons.html" %}
+{% include "funcs/datepicker.html" %}
+{% endblock %}
+
+{% block foot %}
+<script type="text/javascript">
+$(document).ready(function() {
+    var templates = {};
+    $("script[type='text/template']").each(function(idx,item) {
+        var el = $(item);
+        var elId = el.attr('id');
+        var txt = el.html();
+        templates[elId] = doT.template(txt);
+    });
+
+    bootbox.setDefaults({show: true, animate:false});
+
+    $("label.sortName").hide();
+
+    function addItem(root,tpl,data) {
+        var el = $(root);
+        el.find("em").remove();
+        el.append(templates[tpl](data)).find("input[name*=name]").last().focus();
+    }
+
+    $("#addPG").click(function(e) {
+        e.preventDefault();
+        addItem("#pg","newPG",{member_type:"guardian"});
+    });
+
+    $("#addKid").click(function(e) {
+        e.preventDefault();
+        addItem("#kids","newKid",{member_type:"child"});
+    });
+
+    $("#addEmail").click(function(e) {
+        e.preventDefault();
+        addItem("#emails","newEmail",{});
+    });
+
+    $("#addTel").click(function(e) {
+        e.preventDefault();
+        addItem("#telephone_numbers","newPhone",{});
+    });
+
+    $(document).on("click","a.ddSortName",function(e) {
+        e.preventDefault();
+        var el = $(this);
+        if ($("i",el).hasClass("fa-toggle-up")) {
+            el.parent().next().find("label.sortName").show();
+            $("i",el).removeClass("fa-toggle-up").addClass("fa-toggle-down");
+        } else if ($("i",el).hasClass("fa-toggle-down")) {
+            el.parent().next().find("label.sortName").hide();
+            $("i",el).removeClass("fa-toggle-down").addClass("fa-toggle-up");
+        }
+    });
+
+    $(document).on("click","a.delItem",function(e) {
+        e.preventDefault();
+        var btn = $(this);
+        var row = btn.closest("div.row");
+        var itemId = btn.data('did');
+        var itemName = row.find("input[name*=name]").val() || "New Item";
+        var itemType = btn.data('dtype');
+
+        bootbox.confirm("Delete "+itemName+"?",function(result) {
+            if (result) {
+                var parent = row.parent();
+                row.remove();
+                if (itemId != "new") {
+                    parent.append("<input type='hidden' name='"+itemType+"[del]' value='"+itemId+"'>");
+                } else {
+                    // remove from new list?
+                }
+                if (parent.find("div.row").length == 0) {
+                    parent.append("<em>No Items</em>");
+                }
+            };
+        });
+    });
+});
+</script>
+
+<script type="text/template" id="newPG">
+    <div class="row">
+        <section class="col col-1" style="padding-right:0px;padding-left:14px">
+            <a href="#" class="delItem" data-did="new" data-dtype="member"><i class="fa fa-times"></i></a>
+            <a href="#" class="ddSortName"><i class="fa fa-toggle-up"></i></a>
+        </section>
+        <section class="col col-8">
+            <label class="input">
+            <input type="text" name="member[new][name]" placeholder="Name">
+            </label>
+            <label class="input sortName" style="margin-top:6px; display: none">
+            <input type="text" name="member[new][sortname]" placeholder="Sort Name">
+            </label>
+        </section>
+        <section class="col col-3">
+            <label class="input">
+            <i class="icon-prepend fa fa-calendar"></i>
+            <input type="text" data-provide="datepicker" data-date-autoclose="true" name="member[new][dob]" placeholder="DOB">
+            </label>
+        </section>
+        <input type="hidden" name="member[new][member_type]" value="<%= it.member_type %>">
+        <input type="hidden" name="member[new][school]" value="">
+    </div>
+</script>
+<script type="text/template" id="newKid">
+    <div class="row">
+        <section class="col col-1" style="padding-right:0px;padding-left:14px">
+            <a href="#" class="delItem" data-did="new" data-dtype="member"><i class="fa fa-times"></i></a>
+            <a href="#" class="ddSortName"><i class="fa fa-toggle-up"></i></a>
+        </section>
+        <section class="col col-4">
+            <label class="input">
+            <input type="text" name="member[new][name]" placeholder="Name">
+            </label>
+            <label class="input sortName" style="margin-top:6px; display: none">
+            <input type="text" name="member[new][sortname]" placeholder="Sort Name">
+            </label>
+        </section>
+        <section class="col col-3">
+            <label class="input">
+            <i class="icon-prepend fa fa-calendar"></i>
+            <input type="text" data-provide="datepicker" data-date-autoclose="true" name="member[new][dob]" placeholder="DOB">
+            </label>
+        </section>
+        <section class="col col-4">
+            <label class="select">
+            <select name="member[new][school]">
+                <option value="" disabled selected>Choose School&hellip;</option>
+                {% schools "" %}
+            </select>
+            <i></i>
+            </label>
+        </section>
+        <input type="hidden" name="member[new][member_type]" value="<%= it.member_type %>">
+    </div>
+</script>
+<script type="text/template" id="newEmail">
+    <div class="row">
+        <section class="col col-1"><a href="#" class="delItem" data-did="new" data-dtype="email_address"><i class="fa fa-times"></i></a></section>
+        <section class="col col-7">
+            <label class="input">
+            <input type="email" name="email_address[new][name]" placeholder="Email Address">
+            </label>
+        </section>
+        <section class="col col-3">
+            <label class="select">
+            <select name="email_address[new][type]">
+            {% for eat in email_address_types %}
+            {% opt eat e.email_address_type %}{{eat}}{% endopt %}
+            {% endfor %}
+            </select>
+            <i></i>
+            </label>
+        </section>
+    </div>
+</script>
+<script type="text/template" id="newPhone">
+    <div class="row">
+        <section class="col col-1"><a href="#" class="delItem" data-did="new" data-dtype="telephone_number"><i class="fa fa-times"></i></a></section>
+        <section class="col col-6">
+            <label class="input">
+            <input type="text" name="telephone_number[new][name]" placeholder="Telephone Number">
+            </label>
+        </section>
+        <section class="col col-5">
+            <label class="select">
+            <select name="telephone_number[new][type]">
+            {% for tt in telephone_types %}
+            {% opt tt t.telephone_type %}{{tt}}{% endopt %}
+            {% endfor %}
+            </select>
+            <i></i>
+            </label>
+        </section>
+    </div>
+</script>
+{% endblock %}

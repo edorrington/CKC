@@ -1,0 +1,683 @@
+{% extends "templates/base.html" %}
+{% block content %}
+{% csrf-token %}
+<div class="row" id="filters">
+    <div class="col-md-10 col-md-offset-1">
+        <div class="row">
+            <div class="col-md-1">
+                <strong>Show:</strong>
+            </div>
+            <div class="col-md-8">
+                {% for a in assisters %}
+                <label class="checkbox-inline">
+                    <input type="checkbox" checked class="filter" value="ev_{{a.position}}" data-type="{{a.name}}"> <div class="ev_{{a.position}}">{{a.name}}</div>
+                </label>
+                {% endfor %}
+            </div>
+            <div class="col-md-1">
+                <label class="button">
+                    <button class="btn btn-xs btn-default" id="toggleAll">Hide All</button>
+                </label>
+            </div>
+            <div class="col-md-1">
+                <i id="loader" style="display:none" class="fa fa-refresh fa-spin"></i>
+            </div>
+        </div>
+    </div>
+</div>
+<div id='calendar'></div>
+{% endblock %}
+
+{% block head %}
+{% include "funcs/calendar.html" %}
+{% include "funcs/bootbox.html" %}
+{% include "funcs/datepicker.html" %}
+{% include "funcs/icons.html" %}
+{% include "funcs/dot.html" %}
+
+<style>
+    #main {
+    }
+    #filters {
+        margin-bottom: 12px;
+        margin-top: 18px;
+    }
+    #filters > div {
+        background-color: #eee;
+        padding: 8px 12px;
+        border: 1px solid #999;
+        border-radius: 4px;
+    }
+
+    input.filter + div {
+        padding: 3px 6px;
+        color: white;
+        font-family: "Lucida Grande", Helvetica, Arial, Verdana, sans-serif;
+        font-size: 12px;
+        border-radius: 4px;
+    }
+
+    .ev_1 {
+        background-color: #63DA38;
+    }
+
+    .ev_2 {
+        background-color: #AB65B0;
+    }
+
+    .ev_3 {
+        background-color: #FFA900;
+    }
+
+    .ev_4 {
+        background-color: #FF8000;
+    }
+
+    .ev_5 {
+        background-color: #FF00FF;
+    }
+
+    .ev_6 {
+        background-color: #008000;
+    }
+
+    .ev_10 {
+        background-color: #FF2968;
+    }
+
+    #calendar {
+        font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
+        font-size: 14px;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    #qtip-overlay div{
+        position: absolute;
+        left: 0; top: 0;
+        width: 100%; height: 100%;
+        background-color: black;
+        opacity: 0.1;
+        filter:alpha(opacity=10);
+        -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=10)";
+    }
+    .fc-unthemed .fc-today {
+        background-color: rgba(0,0,0,0);
+    }
+</style>
+<script>
+    var m = null;
+    $(document).ready(function() {
+        var templates = {
+            addItem: doT.template($("#addItem").html()),
+            editItem: doT.template($("#editItem").html()),
+            viewItem: doT.template($("#viewItem").html())
+        }
+        bootbox.setDefaults({show: true, animate:false});
+
+        var tooltip = $('<div/>').qtip({
+            id: 'calendar',
+            prerender: true,
+            content: {
+                text: ' ',
+                title: '_',
+                button: true
+            },
+            position: {
+                my: 'left center',
+                at: 'right center',
+                target: 'mouse',
+                viewport: $('#calendar'),
+                adjust: {
+                    mouse: false,
+                    scroll: false,
+                    x: 50
+                }
+            },
+            show: {modal: {on: true}},
+            hide: false,
+            style: 'qtip-bootstrap'
+        }).qtip('api');
+
+        $("input.filter").on('change',function() {
+            var show = $(this).is(':checked');
+            var which = $(this).val();
+            var btn = $("#toggleAll");
+            if ($("input.filter").length == $("input.filter:checked").length) {
+                btn.html("Hide All");
+            } else {
+                btn.html("Show All");
+            }
+            $("#calendar").fullCalendar('refetchEvents');
+        });
+
+        $("#toggleAll").on('click',function() {
+            var filters = $("input.filter");
+            var btn = $(this);
+            if (filters.length == $("input.filter:checked").length) {
+                filters.each(function(pos,cbox) { $(cbox).prop('checked',false);});
+                btn.html("Show All");
+            } else {
+                filters.each(function(pos,cbox) { $(cbox).prop('checked',true); });
+                btn.html("Hide All");
+            }
+            $("#calendar").fullCalendar('refetchEvents');
+        });
+
+        $(document).on("change","input[name='repeats']",function(e) {
+            if ($(this).val() == "None") {
+                $("#rptEndLabel").hide();
+                $("#rptEnd").val('');
+                $("#rptEnd").hide();
+            } else {
+                $("#rptEndLabel").show();
+                $("#rptEnd").show();
+            }
+        });
+
+        function deleteItem(eid,occurrence,kind) {
+            return function() {
+                $.ajax({
+                    dataType   : 'json',
+                    contentType: 'application/json; charset=UTF-8',
+                    type       : "DELETE",
+                    url        : "/calendar/schedule/"+eid+"/"+occurrence+"/"+kind,
+                    headers: {
+                        "X-CSRF-Token": $("#__anti-forgery-token").val(),
+                    },
+                    success: function(data) {
+                        $("#calendar").fullCalendar('refetchEvents');
+                    },
+                    error: function (jqXHR,status,errorStr) {
+                        bootbox.alert("There was an error deleting the schedule. Please try again.");
+                    }
+                });
+            }
+        }
+
+        $(document).on("click","button.tt", function(e) {
+            tooltip.hide(e);
+            e.preventDefault();
+            var eid = $(this).data('eid');
+            var occ = $(this).data('occ');
+            var isSingle = $(this).data('single');
+            if (eid) {
+                var isDelete = $(this).text() === "Delete";
+                if (isDelete) {
+                    bootbox.dialog({
+                        message: isSingle ? "Are you sure you want to delete this schedule?" : "Delete this occurrence, or all future occurrences?",
+                        title: "Delete Assister Schedule",
+                        onEscape: function() {},
+                        backdrop: true,
+                        closeButton: true,
+                        className: "my-modal",
+                        buttons: isSingle ? {
+                            ok: {
+                                label: "Delete",
+                                className: "btn btn-danger",
+                                callback: deleteItem(eid,occ,'this')
+                            },
+                            "Cancel": {
+                                className: "btn btn-default btn-cancel",
+                                callback: function() {}
+                            } }
+                            : {
+                            ok: {
+                                label: "This Occurrence",
+                                className: "btn btn-warning",
+                                callback: deleteItem(eid,occ,'one')
+                            },
+                            "all": {
+                                label: "All Future Occurrences",
+                                className: "btn btn-danger",
+                                callback: deleteItem(eid,occ,'all')
+                            },
+                            "Cancel": {
+                                className: "btn btn-default btn-cancel",
+                                callback: function() {}
+                            }
+                        }
+                    });
+} else {
+    evEdit(eid,occ);
+}
+}
+});
+
+function formatEvent(data) {
+    m = data;
+    var case_id = data["case_id"];
+    var title = '<h4>'+data.title+'</h4>';
+    var sdate = moment(data.repeat_begin).format("MM/DD/YYYY"),
+    edate = moment(data.repeat_end).format("MM/DD/YYYY"),
+    start = data.start.format("h:mm A"),
+    end = data.end.format("h:mm A"),
+    tplData = {id:data.id,occ:data.start.unix()*1000, single:data.repeats == 'None'};
+
+    tplData.whenLine = start + ' - ' + end + '<br/>';
+    if (data.repeats != 'None') {
+        tplData.whenLine = tplData.whenLine + "<small>Recurs " + data.repeats + ' from ' + sdate + ' to ' + edate + '</small>';
+    }
+
+    return {text: templates.viewItem(tplData), title: title};
+};
+
+$('#calendar').fullCalendar({
+    header: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'month,agendaWeek,agendaDay'
+    },
+    lazyFetching:true,
+    allDaySlot: false,
+    eventConstraint: "businessHours",
+    selectConstraint: "businessHours",
+    minTime: "06:00:00",
+    maxTime: "20:00:00",
+    defaultView: "agendaWeek",
+    businessHours: {start:"08:00",end:"18:00"},
+    timezone: "US/Pacific",
+    selectable: true,
+    selectHelper: true,
+    select: evDialog,
+    eventClick: function(data, event, view) {
+        m = data;
+        var res = formatEvent(data);
+        tooltip.set({'content.text': res.text})
+        .set({'content.title': res.title})
+        .reposition(event).show(event);
+    },
+    dayRender: function(date,cell) { },
+    dayClick: function(k,evt,view) {
+        if (view.name === "month") evDialog(k,k.clone());
+    },
+    eventResizeStart: function() { tooltip.hide() },
+    eventDragStart: function() { tooltip.hide() },
+    viewDisplay: function() { tooltip.hide() },
+    loading: function(isLoading) {isLoading ? $("#loader").show() : $("#loader").hide()},
+    eventResize: updateTimes,
+    eventDrop: updateTimes,
+    editable: true,
+    eventLimit: true,
+    events: {
+        url: "/api/schedule_items.json",
+        data: function() {
+            return {
+                show: $("input.filter:checked").map(function(i,el) {
+                    return $(el).data("type");
+                }).toArray().join("|")
+            };
+        }
+    }
+});
+
+function updateTimes(event, delta, revertFunc) {
+    var eventData = {
+        start_time: event.start.local(),
+        end_time: event.end.local()
+    };
+
+    $.ajax({
+        dataType   : 'json',
+        contentType: 'application/json; charset=UTF-8',
+        data       : JSON.stringify(eventData),
+        type       : "PUT",
+        url        : "/calendar/schedule/"+eid+"/when",
+        headers: {
+            "X-CSRF-Token": $("#__anti-forgery-token").val(),
+        },
+        error: function (jqXHR,status,errorStr) {
+            revertFunc();
+            bootbox.alert("There was an error updating the event. Please try again.");
+        }
+    });
+}
+
+function evEdit(eid) {
+    var ev = $("#calendar").fullCalendar('clientEvents',eid);
+    if (ev.length != 1) return;
+    ev = ev[0];
+    ev.stime = ev.start.format("h:mm");
+    ev.etime = ev.end.format("h:mm");
+    var is_appt = ev.hasOwnProperty("case_id");
+    m = ev;
+    bootbox.dialog({
+        message: templates.editItem(ev),
+        title: "Edit Assister Schedule",
+        onEscape: function() {},
+        backdrop: true,
+        closeButton: true,
+        className: "my-modal",
+        buttons: {
+            ok: {
+                label: "Save Changes",
+                className: "btn btn-success",
+                callback: function() {
+                    var sTime = $("#evStart").val().split(":");
+                    var eTime = $("#evEnd").val().split(":");
+                    var sH = parseInt(sTime[0]), sM = parseInt(sTime[1]);
+                    var eH = parseInt(eTime[0]), eM = parseInt(eTime[1]);
+                    sH = (sH < 8) ? sH + 12 : sH;
+                    eH = (eH < 8) ? eH + 12 : eH;
+                    var start = moment(ev.start);
+                    var end = moment(ev.end);
+                    start.hour(sH);
+                    start.minute(sM);
+                    end.hour(eH);
+                    end.minute(eM);
+
+                    var eventData, urlPath;
+                    if (!is_appt) {
+                        urlPath = "events/"+eid;
+                        eventData = {
+                            id: ev.id,
+                            title: $("#evTitle").val(),
+                            location: $("#evLocation").val(),
+                            description: $("#evDescription").val(),
+                            enrollment_assistance: $("#evEnrollment").prop('checked'),
+                            attendance: $("#evAttendance").val() || null,
+                            start_time: start,
+                            end_time: end
+                        };
+                    } else {
+                        urlPath = "appointments/"+eid;
+                        eventData = {
+                            id: ev.id,
+                            type: $("#evEType").val(),
+                            title: $("#evTitle").val(),
+                            location: $("#evLocation").val(),
+                            description: $("#evDescription").val(),
+                            r_mail: $("#evRMail").prop("checked"),
+                            r_email: $("#evREmail").prop("checked"),
+                            r_sms: $("#evRSMS").prop("checked"),
+                            className: "ev_"+$("#evEType option:checked").data("pos"),
+                            start_time: start,
+                            end_time: end
+                        };
+                    }
+                        // Send the eventData to the server via ajax and get result
+                        $.ajax({
+                            dataType   : 'json',
+                            contentType: 'application/json; charset=UTF-8',
+                            data       : JSON.stringify(eventData),
+                            type       : "PUT",
+                            url        : "/calendar/"+urlPath,
+                            headers: {
+                                "X-CSRF-Token": $("#__anti-forgery-token").val(),
+                            },
+                            success: function (data) {
+                                ev.start_time = start;
+                                ev.start = start;
+                                ev.end_time = end;
+                                ev.end = end;
+                                ev.title = eventData.title;
+                                ev.location = eventData.location;
+                                ev.description = eventData.description;
+                                if (is_appt) {
+                                    ev.type = eventData.type;
+                                    ev.className = eventData.className;
+                                    ev.r_mail = eventData.r_mail;
+                                    ev.r_email = eventData.r_email;
+                                    ev.r_sms = eventData.r_sms;
+                                } else {
+                                    ev.enrollment_assistance = eventData.enrollment_assistance;
+                                    ev.attendance = eventData.attendance;
+                                }
+                                $('#calendar').fullCalendar('updateEvent', ev);
+                            },
+                            error: function (jqXHR,status,errorStr) {
+                                bootbox.alert("There was an error saving your changes. Please try again.");
+                            }
+                        });
+                    $('#calendar').fullCalendar('unselect');
+                }
+            },
+            "Cancel": {
+                className: "btn btn-default btn-cancel",
+                callback: function() {}
+            }
+        }
+    });
+}
+
+function evDialog(start,end) {
+         // Cancel if the user selected across two or more days
+         if (start.date() != end.date() || start.month() != end.month()) {
+             $('#calendar').fullCalendar('unselect');
+             if ($('#calendar').fullCalendar('getView').name !== "month") bootbox.alert("Schedule blocks cannot span more than one day");
+             return;
+         }
+         if (start.isBefore(new Date())) {
+             $('#calendar').fullCalendar('unselect');
+             bootbox.alert("Schedules cannot be created in the past");
+             return;
+         }
+
+         start.local();
+         end.local();
+         m = [start,end];
+
+         bootbox.dialog({
+             message: templates.addItem({stime:start.format("h:mm"),etime:end.format("h:mm")}),
+             title: "Add Assister Schedule",
+             onEscape: function() {},
+             backdrop: true,
+             closeButton: true,
+             className: "my-modal",
+             buttons: {
+                 ok: {
+                     label: "Add Schedule",
+                     className: "btn btn-success",
+                     callback: function() {
+                     // TODO: Validate entries
+                     var type = $("#evType").val();
+                     var sTime = $("#evStart").val().split(":");
+                     var eTime = $("#evEnd").val().split(":");
+                     if (type) {
+                         var slots = $("#evSlots").val();
+                         var sH = parseInt(sTime[0]), sM = parseInt(sTime[1]);
+                         var eH = parseInt(eTime[0]), eM = parseInt(eTime[1]);
+                         sH = (sH < 8) ? sH + 12 : sH;
+                         eH = (eH < 8) ? eH + 12 : eH;
+                         // Note the following two lines depend on internals of the extended version of moment.js
+                         start._ambigTime = false;
+                         end._ambigTime = false;
+                         start.hour(sH);
+                         start.minute(sM);
+                         end.hour(eH);
+                         end.minute(eM);
+
+                         var rb = start.format("MM/DD/YYYY"),
+                             re = $("#rptEnd").val();
+                         if (!re || re === "") re = rb;
+
+                         var eventData = {
+                             site_id: {{site_id}},
+                             type: type,
+                             slots: slots,
+                             title: type + " ("+slots+" slot"+(slots > 1 ? "s)" : ")"),
+                             repeats: $("input[name='repeats']:checked").val(),
+                             repeat_begin: rb,
+                             repeat_end: re,
+                             className: "ev_"+$("#evType option:checked").data("pos"),
+                             start: start,
+                             end: end,
+                             start_time: start.format("HH:mm:ss"),
+                             end_time: end.format("HH:mm:ss")
+                         };
+                         // Send the eventData to the server via ajax and get result
+                         $.ajax({
+                             dataType   : 'json',
+                             contentType: 'application/json; charset=UTF-8',
+                             data       : JSON.stringify(eventData),
+                             type       : "POST",
+                             url        : "/calendar/schedule",
+                             headers: {
+                                 "X-CSRF-Token": $("#__anti-forgery-token").val(),
+                             },
+                             success: function (data) {
+                                 eventData.id = data.id;
+                                 $('#calendar').fullCalendar('renderEvent', eventData, true);
+                             },
+                             error: function (jqXHR,status,errorStr) {
+                                 bootbox.alert("There was an error creating the schedule. Please try again.");
+                             }
+                         });
+                     }
+                     $('#calendar').fullCalendar('unselect');
+                 }
+             },
+             "Cancel": {
+                 className: "btn btn-default btn-cancel",
+                 callback: function() {}
+             }
+         }
+     });
+}
+});
+</script>
+
+<script type="text/template" id="addItem">
+    <% var times = ['8:00','8:30','9:00','9:30','10:00','10:30','11:00','11:30','12:00','12:30','1:00','1:30','2:00','2:30','3:00','3:30','4:00','4:30','5:00','5:30','6:00']; %>
+    <form class="crisp">
+        <section>
+            <div class="row">
+                <div class="col col-8">
+                    <label class="select">
+                        <select id="evType" name="type">
+                            <option value="" selected disabled>Choose Type&hellip;</option>
+                            {% for a in assisters %}
+                            <option data-pos="{{a.position}}" value="{{a.name}}">{{a.name}}</option>
+                            {% endfor %}
+                        </select>
+                        <i></i>
+                    </label>
+                </div>
+                <div class="col col-4">
+                    <label class="input">
+                        <input id="evSlots" placeholder="Slots" type="number" value="<%= it.slots %>" required>
+                    </label>
+                </div></div>
+            </section>
+
+            <div class="row">
+                <section class="col col-6">
+                    <label>Start:</label>
+                    <label class="select">
+                        <select id="evStart">
+                            <%~ times :value:index %>
+                            <%? it.stime == value %>
+                            <option selected="selected"><%= value %></option>
+                            <%?? %>
+                            <option><%= value %></option>
+                            <%? %>
+                            <%~ %>
+                        </select>
+                        <i></i>
+                    </label>
+                </section>
+                <section class="col col-6">
+                    <label for="evEnd">End:</label>
+                    <label class="select">
+                        <select id="evEnd">
+                            <%~ times :value:index %>
+                            <%? it.etime == value %>
+                            <option selected="selected"><%= value %></option>
+                            <%?? %>
+                            <option><%= value %></option>
+                            <%? %>
+                            <%~ %>
+                        </select>
+                        <i></i>
+                    </label>
+                </section>
+            </div>
+
+            <section>
+                <div class="row"><div class="col col-8">
+                    <label>Repeats:</label>
+                </div><div class="col col-4"><label id="rptEndLabel" style="display:none">Until:</label></div></div>
+                <div class="row" style="margin-top: 6px">
+                    <div class="col col-2"><label class="radio"><input type="radio" name="repeats" value="None" checked><i></i>None</label></div>
+                    <div class="col col-2"><label class="radio"><input type="radio" name="repeats" value="Daily"><i></i>Daily</label></div>
+                    <div class="col col-2"><label class="radio"><input type="radio" name="repeats" value="Weekly"><i></i>Weekly</label></div>
+                    <div class="col col-2"><label class="radio"><input type="radio" name="repeats" value="Monthly"><i></i>Monthly</label></div>
+                    <div class="col col-4"><label class="input"><input id="rptEnd" type="text" data-provide="datepicker" data-date-start-date="-0d" data-date-today-highlight="true" data-date-autoclose="true" name="repeat_end" style="display:none"></label></div>
+                </section>
+            </form>
+        </script>
+
+        <script type="text/template" id="editItem">
+            <% var times = ['8:00','8:30','9:00','9:30','10:00','10:30','11:00','11:30','12:00','12:30','1:00','1:30','2:00','2:30','3:00','3:30','4:00','4:30','5:00','5:30','6:00']; %>
+            <form class="crisp">
+                <section>
+                    <div class="row">
+                        <div class="col col-6">
+                            Assister: <%= it.title %>
+                        </div>
+                        <div class="col col-6">
+                            <label class="input">
+                                <input id="slots" placeholder="Slots" type="number" value="<%= it.slots %>">
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="row">
+                    <section class="col col-6">
+                        <label>Start:</label>
+                        <label class="select">
+                            <select id="evStart">
+                                <%~ times :value:index %>
+                                <%? it.stime == value %>
+                                <option selected="selected"><%= value %></option>
+                                <%?? %>
+                                <option><%= value %></option>
+                                <%? %>
+                                <%~ %>
+                            </select>
+                            <i></i>
+                        </label>
+                    </section>
+                    <section class="col col-6">
+                        <label for="evEnd">End:</label>
+                        <label class="select">
+                            <select id="evEnd">
+                                <%~ times :value:index %>
+                                <%? it.etime == value %>
+                                <option selected="selected"><%= value %></option>
+                                <%?? %>
+                                <option><%= value %></option>
+                                <%? %>
+                                <%~ %>
+                            </select>
+                            <i></i>
+                        </label>
+                    </section>
+                </div>
+
+                <section>
+                    <div class="row"><div class="col col-8">
+                        <label>Repeats:</label>
+                    </div><div class="col col-4"><label>Until:</label></div></div>
+                    <div class="row" style="margin-top: 6px">
+                        <div class="col col-2"><label class="radio"><input type="radio"><i></i>None</label></div>
+                        <div class="col col-2"><label class="radio"><input type="radio"><i></i>Daily</label></div>
+                        <div class="col col-2"><label class="radio"><input type="radio"><i></i>Weekly</label></div>
+                        <div class="col col-2"><label class="radio"><input type="radio"><i></i>Monthly</label></div>
+                        <div class="col col-4"><label class="input"><input type="text" data-provide="datepicker" data-date-start-date="-0d" data-date-today-highlight="true" data-date-autoclose="true" name="repeat_end"></label></div>
+                    </section>
+                </form>
+            </script>
+
+            <script type="text/template" id="viewItem">
+                <p>
+                    <%= it.whenLine %>
+                </p>
+                <hr>
+                <button class="tt btn btn-xs btn-primary" data-occ="<%= it.occ %>" data-eid="<%= it.id %>">Edit</button>
+                &nbsp;&nbsp;
+                <button class="tt btn btn-xs btn-danger" data-single="<%= it.single %>" data-occ="<%= it.occ %>" data-eid="<%= it.id %>" data-etype="<%= it.type %>">Delete</button>
+                &nbsp;&nbsp;
+                <button class="tt btn btn-xs btn-default">Cancel</button>
+            </script>
+            {% endblock %}

@@ -1,0 +1,130 @@
+{% extends "templates/base.html" %}
+{% block content %}
+  {% if msg %}
+    <div class="alert alert-success alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+      {{ msg }}
+    </div>
+  {% endif %}
+  {% if errors %}
+    <div class="alert alert-danger alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+      <ul>
+      {% for err in errors %}
+        <li>{{ err }}</li>
+      {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+<table class="sorted table table-bordered table-hover">
+    <caption>
+    <div class="row">
+    <div class="col-md-8"><h1>Todo Items</h1></div>
+    <div class="col-md-4">
+    <div style="margin-top:20px;margin-bottom:10px" id="search">
+        <input type="text" class="typeahead" placeholder="Find family" autocomplete="off">
+    </div>
+    </div>
+    </div>
+    </caption>
+    <thead>
+        <tr>
+            <th style="width:8%" data-sorter="false" title="Create Contact (quick or full)">Contact</th>
+            <th style="width:44%">Family Members</th>
+            <th style="width:12%">Phone</th>
+            <th style="width:12%">Language</th>
+            <th style="width:12%">Contacted</th>
+            <th style="width:12%">Status</th>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <td>{{families|count}} Items</td>
+            <td class="pager">
+                    <i class="first glyphicon glyphicon-fast-backward"></i>
+                    <i class="prev glyphicon glyphicon-step-backward"></i>
+                    <select class="gotoPage"></select><span class="pagedisplay"></span>
+                    <i class="next glyphicon glyphicon-step-forward"></i>
+                    <i class="last glyphicon glyphicon-fast-forward"></i>
+                    &nbsp;&nbsp;&nbsp;
+                    <i class="glyphicon glyphicon-list-alt"></i> <select class="pagesize">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                    </select>
+            </td>
+            <td colspan="4"></td>
+        </tr>
+    </tfoot>
+    <tbody>
+
+{% for family in families %}
+        <tr>
+            <td style="text-align:center">
+                <a href="#" class="qc" data-cf="{{family.consent_signed}}" data-cid="{{family.case_id}}" data-status="{{family.status}}" data-who='{{family.guardians|join:", "}}'><i class="fa fa-phone-square" title="Quick Contact"></i></a>
+                &nbsp;&nbsp;
+                <a href="/contacts/{{family.id}}/new"><i class="glyphicon glyphicon-phone-alt" title="New Full Contact"></i></a>
+            </td>
+            <td data-text="{{family.sortname}}"><a href="/families/{{family.id}}" title="View">{{family.guardians|join:", "}}</a>
+            <table class="table inner-table" style="background-color: transparent !important; margin-bottom: 0px"><tr>{% for k in family.kids %}<td style="padding: 3px">{{k}}</td>{% endfor %}</tr></table>
+            </td>
+            <td>{{ family.telephone_number }}</td>
+            <td>{{ family.language|capitalize }}</td>
+            <td>{{ family.last_contact|date:"YYYY-MM-dd" }}</td>
+            <td>{{ family.status }}</td>
+        </tr>
+{% endfor %}
+    </tbody>
+</table>
+<fieldset>
+<a href="/families/new" class="btn btn-default">New Family</a>
+{% endblock %}
+{% block foot %}
+<script>
+$(document).ready(function () {
+        var engine = new Bloodhound({
+            remote: "/api/suggest_family/%QUERY",
+            datumTokenizer: Bloodhound.tokenizers.whitespace,
+            queryTokenizer: Bloodhound.tokenizers.whitespace
+        });
+        engine.initialize();
+
+    $('#search .typeahead').typeahead({
+      items: 8,
+      source: engine.ttAdapter(),
+      addItem: {name:"Add New Family", fid:-1}
+    });
+
+    $("#search .typeahead").change(function() {
+        var current = $(this).typeahead("getActive");
+        if (current) {
+            if (current.name.toLowerCase() == $(this).val().toLowerCase()) {
+                if (current.fid) {
+                    if (current.fid >= 0) {
+                        window.location.assign("/families/"+current.fid);
+                    } else {
+                        window.location.assign("/families/new");
+                    }
+                }
+            } else {
+                // This means it is only a partial match, you can either add a new item
+                // or take the active if you don't want new items
+            }
+        } else {
+            // Nothing is active so it is a new value (or maybe empty value)
+        }
+    });
+});
+</script>
+{% include "templates/qc.html" with redir="/" %}
+{% endblock %}
+
+{% block head %}
+{% include "funcs/bootbox.html" %}
+{% include "funcs/tablesorter.html" %}
+{% include "funcs/icons.html" %}
+{% include "funcs/typeahead.html" %}
+{% include "funcs/bloodhound.html" %}
+{% include "funcs/datepicker.html" %}
+{% include "funcs/dot.html" %}
+{% endblock %}

@@ -1,0 +1,241 @@
+{% extends "templates/base.html" %}
+{% block content %}
+  {% if errors %}
+    <div class="alert alert-danger alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+      <ul>
+      {% for err in errors %}
+        <li>{{ err }}</li>
+      {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+<div class="crisp">
+    <h2>Reports</h2>
+    <dl>
+        <dt>
+            Outreach Report
+        </dt>
+        <dd class="row">
+        <div class="col col-7">
+        The Outreach report shows in summary form the quantity and type of outreach efforts,
+        and the effectiveness in converting contacts to appointments.
+        </div>
+        <div class="col col-5 pull-right">
+        <form action="/reports/outreach/run" method="post">
+            {% csrf-token %}
+            {% if is-global %}
+            <fieldset>
+                <label class="label">Site</label>
+                <label class="select">
+                    <select name="site_id">
+                        <option value="" selected disabled>Choose&hellip;</option>
+                        {% for site in sites %}
+                        <option value="{{site.id}}">{{site.name}}</option>
+                        {% endfor %}
+                    </select>
+                    <i></i>
+                </label>
+            </fieldset>
+            {% endif %}
+            <fieldset>
+            <label class="label">Start Date</label>
+            <label class="input">
+                <input type="text" name="startdate" placeholder="Start Date" data-provide="datepicker" data-date-autoclose="true">
+            </label>
+            </fieldset>
+            <fieldset>
+            <label class="label">End Date</label>
+            <label class="input">
+                <input type="text" name="enddate" placeholder="End Date" data-provide="datepicker" data-date-autoclose="true">
+            </label>
+            </fieldset>
+            <fieldset>
+                <button submit name="type" class="btn btn-xs btn-default runnable" value="trending">Trending</button>
+                &nbsp;&nbsp;
+                <button submit name="type" class="btn btn-xs btn-primary runnable" value="range">Date Range</button>
+            </fieldset>
+          </form>
+        </div>
+        </dd>
+        {% if any is-admin is-site-admin is-site-user %}
+        <dt>
+            Service Report
+        </dt>
+        <dd class="row">
+        <div class="col col-7">
+        This is a description of the Service Report, its use and a summary of the data it provides.
+        </div>
+        <div class="col col-5 pull-right">
+            <form action="/reports/service/run" method="post">
+            {% csrf-token %}
+            {% if is-global %}
+            <fieldset>
+                <label class="label">Site</label>
+                <label class="select">
+                    <select name="site_id">
+                        <option value="" selected disabled>Choose&hellip;</option>
+                        {% for site in sites %}
+                        <option value="{{site.id}}">{{site.name}}</option>
+                        {% endfor %}
+                    </select>
+                    <i></i>
+                </label>
+            </fieldset>
+            {% endif %}
+            <fieldset>
+            <label class="label">Services Provided</label>
+            <div class="row">
+                <div class="col col-6">
+                {% for s in services %}
+                    <label class="checkbox"><input type="checkbox" name="service" value="{{s}}"><i></i>{{s}}</label>
+                {% if forloop.counter = 4 %}
+                </div>
+                <div class="col col-6">
+                {% endif %}
+                {% endfor %}
+                </div>
+            </div>
+            </fieldset>
+            <fieldset>
+            <label class="label">Coverage Types</label>
+            <div class="row">
+                <div class="col col-6">
+                {% for c in coverage %}
+                    <label class="checkbox"><input type="checkbox" name="coverage" value="{{c}}"><i></i>{{c}}</label>
+                {% if forloop.counter = 4 %}
+                </div>
+                <div class="col col-6">
+                {% endif %}
+                {% endfor %}
+                </div>
+            </div>
+            </fieldset>
+            <fieldset>
+            <label class="label">Start Date</label>
+            <label class="input">
+                <input type="text" name="startdate" placeholder="Start Date" data-provide="datepicker" data-date-autoclose="true">
+            </label>
+            </fieldset>
+            <fieldset>
+            <label class="label">End Date</label>
+            <label class="input">
+                <input type="text" name="enddate" placeholder="End Date" data-provide="datepicker" data-date-autoclose="true">
+            </label>
+            </fieldset>
+            <fieldset>
+                <button submit name="type" class="btn btn-xs btn-default runnable" value="trending">Trending</button>
+                &nbsp;&nbsp;
+                <button submit name="type" class="btn btn-xs btn-primary runnable" value="range">Date Range</button>
+            </fieldset>
+            </form>
+        </div>
+        </dd>
+        {% endif %}
+
+        {% if is-user %}
+        <dt>
+          Application Status Report
+        </dt>
+        <dd class="row">
+        <div class="col col-7">
+        Returns a CSV file suitable for import into Excel, containing a family level ID, sortname, name, and date of birth
+        for each family member who has been added between the start and end dates.
+        </div>
+        <div class="col col-5 pull-right">
+        <form action="/reports/status/run" method="post">
+            {% csrf-token %}
+            {% if is-global %}
+            <fieldset>
+                <label class="label">Site</label>
+                <label class="select">
+                    <select name="site_id">
+                        <option value="" selected disabled>Choose&hellip;</option>
+                        {% for site in sites %}
+                        <option value="{{site.id}}">{{site.name}}</option>
+                        {% endfor %}
+                    </select>
+                    <i></i>
+                </label>
+            </fieldset>
+            {% endif %}
+            <fieldset>
+            <label class="label">Start Date</label>
+            <label class="input">
+                <input type="text" name="startdate" placeholder="Start Date" data-provide="datepicker" data-date-autoclose="true">
+            </label>
+            </fieldset>
+            <fieldset>
+            <label class="label">End Date</label>
+            <label class="input">
+                <input type="text" name="enddate" placeholder="End Date" data-provide="datepicker" data-date-autoclose="true">
+            </label>
+            </fieldset>
+            <fieldset>
+                <button submit class="btn btn-xs btn-primary runnable">Run</button>
+            </fieldset>
+        </form>
+        </div>
+        </dd>
+        {% endif %}
+
+        <dt>
+            Ad-Hoc Report
+        </dt>
+        <dd class="row">
+        <div class="col col-7">
+        This report lets you choose an arbitrary set of fields and time spans from the database. It returns its results
+        as a Comma Separated Value (CSV) file, suitable to import into Excel for further action.
+        </div>
+        <div class="col col-5">
+            <fieldset>
+            <a class="btn btn-xs btn-primary" href="/reports/adhoc/choose">Choose&hellip;</a>
+            </fieldset>
+        </div>
+        </dd>
+    </dl>
+</div>
+{% endblock %}
+
+{% block head %}
+{% include "funcs/bootbox.html" %}
+{% include "funcs/datepicker.html" %}
+
+<style>
+div.crisp { margin-top: 50px;}
+dt {
+    font-size: 1.6rem;
+    color: #4F81BD;
+    border-bottom: 1px solid #4F81BD;
+    margin-top: 50px !important;
+}
+dt a {
+    font-style: italic;
+}
+
+dd {
+    margin-top: 3px;
+    color: #336;
+}
+
+
+</style>
+{% endblock %}
+
+{% block foot %}
+<script type="text/javascript">
+$(document).ready(function() {
+    bootbox.setDefaults({show: true, animate:false});
+
+    $("a.runnable").on("click",function(e) {
+        e.preventDefault();
+        var el = $(this),
+            href = el.attr("href"),
+            ha = href.split("/").reverse(),
+            type = ha[1],
+            kind = ha[0];
+
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,5 @@
+#!/bin/sh
+set -e # Quit on any error
+lein ragtime rollback 100000
+lein ragtime migrate
+psql -f seeds.sql ckc ckc

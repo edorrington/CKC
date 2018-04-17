@@ -1,0 +1,50 @@
+{% extends "templates/base.html" %}
+{% block content %}
+<h3 style="color:red;text-align:center">NOTE: WORK IN PROGRESS</h3>
+{% ifequal type "range" %}
+<pre>
+{% for d in data %}
+{{d.out-calls}}/{{d.in-calls}}/{{d.appts}}/{{d.interested}}/{{d.total-families}}/{{d.total-contacts}}
+{% for oe in d.outreach-event-data %}
+{{oe.type}}: {{oe.description}}
+{{oe.attendance}}
+{{oe.start_time}}
+{{oe.end_time}}
+{{oe.title}}
+{{oe.location}}
+{{oe.enrollment_assistance}}
+{% endfor %}
+{% endfor %}
+</pre>
+{% else %}
+<pre>
+{% for d in data %}
+{{d.out-calls}}/{{d.in-calls}}/{{d.appts}}/{{d.interested}}/{{d.total-families}}/{{d.total-contacts}}
+{% for oe in d.outreach-event-data %}
+{{oe.type}}: {{oe.description}}
+{{oe.attendance}}
+{{oe.start_time}}
+{{oe.end_time}}
+{{oe.title}}
+{{oe.location}}
+{{oe.enrollment_assistance}}
+{% endfor %}
+{% endfor %}
+<div id="oi" style="height:225px"></div>
+<div id="iro" style="height:225px"></div>
+</pre>
+{% endifequal %}
+{% endblock %}
+
+{% block head %}
+{% include "funcs/charts.html" %}
+{% endblock %}
+
+{% block foot %}
+<script>
+$(document).ready(function() {
+    Charts.barChart("oi",{title: "Outreach Input", subtitle: "Calls Handled", ttitle: "Total Calls", categories: ["Outreach Calls Made","Incoming Calls Fielded"], data: [{name:"Jan 5 - 31, 2015", data:[50,70]},{name:"Feb 2015",data:[33,55]},{name:"Mar 1 - 17, 2015",data:[18,70]}]});
+    Charts.barChart("iro",{title: "Initial Results of Outreach", subtitle: "Appointments & Interested", xttitle: "Total Calls", categories: ["Outreach Calls Made","Incoming Calls Fielded"], data: [{name:"Jan 5 - 31, 2015", data:[50,70]},{name:"Feb 2015",data:[33,55]},{name:"Mar 1 - 17, 2015",data:[18,70]}]});
+});
+</script>
+{% endblock %}

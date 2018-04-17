@@ -1,0 +1,174 @@
+{% extends "templates/base.html" %}
+{% block content %}
+  {% if msg %}
+    <div class="alert alert-success alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+      {{ msg }}
+    </div>
+  {% endif %}
+  {% if errors %}
+    <div class="alert alert-danger alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+      <ul>
+      {% for err in errors %}
+        <li>{{ err }}</li>
+      {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+<table class="sorted table table-bordered table-hover">
+    <caption>
+    <div class="row">
+    <div class="col-md-8"><h1>Families</h1></div>
+    <div class="col-md-4">
+    <div style="margin-top:20px;margin-bottom:10px" id="search">
+        <input type="text" class="typeahead" placeholder="Find family" autocomplete="off">
+    </div>
+    </div>
+    </div>
+    </caption>
+    <thead>
+        <tr>
+            {% ifequal user.role "admin" %}
+            <th style="width:5%" data-sorter="false">Edit</th>
+            <th style="width:8%" data-sorter="false">Contact</th>
+            <th style="width:22%">Adult Members</th>
+            <th style="width:22%">Address</th>
+            <th style="width:10%">Phone</th>
+            <th style="width:10%">Language</th>
+            <th style="width:10%">Ethnicity</th>
+            <th style="width:11%">Site</th>
+            <th style="width:6%">Status</th>
+            <th style="width:6%">Contacted</th>
+            {% else %}
+            <th style="width:5%" data-sorter="false">Edit</th>
+            <th style="width:7%" data-sorter="false" title="Create Contact (quick or full)">Contact</th>
+            <th style="width:20%">Adult Members</th>
+            <th style="width:18%">Address</th>
+            <th style="width:11%">Phone</th>
+            <th style="width:10%">Language</th>
+            <th style="width:11%">Ethnicity</th>
+            <th style="width:10%">Status</th>
+            <th style="width:11%">Contacted</th>
+            {% endifequal %}
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <td colspan="3" class="pager">
+                    <i class="first glyphicon glyphicon-fast-backward"></i>
+                    <i class="prev glyphicon glyphicon-step-backward"></i>
+                    <select class="gotoPage"></select><span class="pagedisplay"></span>
+                    <i class="next glyphicon glyphicon-step-forward"></i>
+                    <i class="last glyphicon glyphicon-fast-forward"></i>
+                    &nbsp;&nbsp;&nbsp;
+                    <i class="glyphicon glyphicon-list-alt"></i> <select class="pagesize">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                    </select>
+            </td>
+            {% ifequal user.role "admin" %}<td colspan="7"></td>{% else %}<td colspan="6"></td>{% endifequal %}
+        </tr>
+    </tfoot>
+    <tbody>
+{% for family in families %}
+        <tr>
+            <td style="text-align:center"><a href="/families/{{family.id}}/edit"><i class="fa fa-edit" title="Edit Family Record"></i></a></td>
+            <td style="text-align:center">
+                <a href="#" class="qc" data-cf="{{family.consent_signed}}" data-cid="{{family.case_id}}" data-status="{{family.status}}" data-who="{{family.guardians|join:' & '}}"><i class="fa fa-phone-square" title="Quick Contact"></i></a>
+                &nbsp;&nbsp;
+                <a href="/contacts/{{family.id}}/new"><i class="glyphicon glyphicon-phone-alt" title="New Full Contact"></i></a>
+            </td>
+            <td data-text="{{family.sortname}}"><a href="/families/{{family.id}}" title="View Family">{{family.guardians|join:", "}}</a></td>
+            <td data-text="{{family.city}}{{family.street1}}">{{ family.street1 }}, {{ family.city }}</td>
+            <td>{{ family.telephone_number }}</td>
+            <td>{{ family.language_name }}</td>
+            <td>{{ family.ethnicity_name }}</td>
+            {% ifequal user.role "admin" %}
+            <td><a href="/admin/sites/{{ family.site_id }}">{{ family.site_name }}</a></td>
+            {% endifequal %}
+            <td>{{ family.status }}</td>
+            <td data-text='{{family.last_contact|date:"YYYYMMdd"}}'>{{ family.last_contact|date:"YYYY-MM-dd" }}</td>
+        </tr>
+{% endfor %}
+    </tbody>
+</table>
+<fieldset>
+<a href="/families/new" class="btn btn-default">New Family</a>
+{% endblock %}
+{% block foot %}
+<script>
+$(document).ready(function () {
+        var engine = new Bloodhound({
+            remote: "/api/suggest_family/%QUERY",
+            datumTokenizer: Bloodhound.tokenizers.whitespace,
+            queryTokenizer: Bloodhound.tokenizers.whitespace
+        });
+        engine.initialize();
+
+    $('#search .typeahead').typeahead({
+      items: 8,
+      source: engine.ttAdapter(),
+      addItem: {name:"Add New Family", fid:-1}
+    });
+
+    $("#search .typeahead").change(function() {
+        var current = $(this).typeahead("getActive");
+        if (current) {
+            if (current.name.toLowerCase() == $(this).val().toLowerCase()) {
+                if (current.fid) {
+                    if (current.fid >= 0) {
+                        window.location.assign("/families/"+current.fid);
+                    } else {
+                        window.location.assign("/families/new");
+                    }
+                }
+            } else {
+                // This means it is only a partial match, you can either add a new item
+                // or take the active if you don't want new items
+            }
+        } else {
+            // Nothing is active so it is a new value (or maybe empty value)
+        }
+    });
+});
+</script>
+{% include "templates/qc.html" with redir="/families" %}
+{% endblock %}
+
+{% block head_css %}
+{% style "/css/fontawesome.css" %}
+{% style "/css/tablesorter_theme.bootstrap.css" %}
+{% style "/js/jquery_tablesorter/jquery.tablesorter.pager.css" %}
+{% style "/css/datepicker3.css" %}
+{% endblock %}
+{% block head_js %}
+{% script "/js/bootstrap-datepicker.js" %}
+{% script "/js/bootstrap3-typeahead.min.js" %}
+{% script "/js/bloodhound.min.js" %}
+{% script "/js/bootbox.min.js" %}
+{% script "/js/jquery_tablesorter/jquery.tablesorter.min.js" %}
+{% script "/js/jquery_tablesorter/jquery.tablesorter.widgets.min.js" %}
+{% script "/js/jquery_tablesorter/widget-pager.min.js" %}
+{% script "/js/doT.min.js" %}
+{% endblock %}
+{% block head %}
+<script type="text/javascript">
+$(document).ready(function() {
+    doT.templateSettings = {
+      evaluate:    /\<\%([\s\S]+?)\%\>/g,
+      interpolate: /\<\%=([\s\S]+?)\%\>/g,
+      encode:      /\<\%!([\s\S]+?)\%\>/g,
+      use:         /\<\%#([\s\S]+?)\%\>/g,
+      define:      /\<\%##\s*([\w\.$]+)\s*(\:|=)([\s\S]+?)#\%\>/g,
+      conditional: /\<\%\?(\?)?\s*([\s\S]*?)\s*\%\>/g,
+      iterate:     /\<\%~\s*(?:\%\>|([\s\S]+?)\s*\:\s*([\w$]+)\s*(?:\:\s*([\w$]+))?\s*\%\>)/g,
+      varname: 'it',
+      strip: true,
+      append: true,
+      selfcontained: false
+    };
+});
+</script>
+{% endblock %}

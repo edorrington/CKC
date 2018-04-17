@@ -1,0 +1,119 @@
+{% extends "templates/base.html" %}
+{% block content %}
+  {% if msg %}
+    <div class="alert alert-success alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+      {{ msg }}
+    </div>
+  {% endif %}
+  {% if errors %}
+    <div class="alert alert-danger alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+      <ul>
+      {% for err in errors %}
+        <li>{{ err }}</li>
+      {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+<div class="row">
+    <div class="col-md-6" id="ytd" style="height: 250px"></div>
+    <div class="col-md-6" id="month" style="height: 250px"></div>
+</div>
+
+<form action="/referrals" method="POST" class="crisp">
+    {% csrf-token %}
+    <fieldset>
+        <h3>Identified Need</h3>
+        <hr/>
+        <section style="margin-top:12px">
+            <div class="row">
+                <div class="col col-1"></div>
+                <div class="col col-3">
+                {% for need in identified_needs %}
+                {% if forloop.counter = 4 %}
+                </div>
+                <div class="col col-4">
+                {% endif %}
+                {% if forloop.counter = 7 %}
+                </div>
+                <div class="col col-3">
+                {% endif %}
+                    <label class="radio">
+                        <input type="radio" name="identified_need" value="{{need}}">{{need}}
+                        <i></i>
+                    </label>
+                {% endfor %}
+                </div>
+            </div>
+        </section>
+    </fieldset>
+    <fieldset>
+        <h3>Referral Service Provided</h3>
+        <hr/>
+        <section style="margin-top:12px">
+            <div class="row">
+                <div class="col col-1"></div>
+                {% for svc in services_provided %}
+                {% if forloop.counter = 2 %}<div class="col col-4">{% else %}<div class="col col-3">{% endif %}
+                    <label class="radio">
+                        <input type="radio" name="service_provided" value="{{svc}}">{{svc}}
+                        <i></i>
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </fieldset>
+    <fieldset>
+        <h3>Date Service Provided</h3>
+        <hr/>
+        <section style="margin-top:12px">
+            <div class="row">
+                <div class="col col-1"></div>
+                <div class="col col-3">
+                    <label class="input">
+                        <input  type="text"
+                                name="referral_date"
+                                data-provide="datepicker"
+                                data-date-today-highlight="true"
+                                data-date-autoclose="true"
+                                data-date-end-date="0d"
+                                data-date-today-btn="linked">
+                    </label>
+                </div>
+            </div>
+        </section>
+    </fieldset>
+    <section>
+        <button id="add" class="submit btn btn-default btn-primary">Add Referral Record</button>
+    </section>
+</form>
+{% endblock %}
+
+{% block foot %}
+<script type="text/javascript">
+$(document).ready(function() {
+    $("input[name=referral_date]").datepicker("update","0d");
+
+    Charts.colChart("ytd", {
+        title: "Year to Date",
+        ttitle: "Total Referrals",
+        categories: ["Information Retrieval","Concrete Resource","Warm Handoff to Agency"],
+        data: {{ytd|json|safe}}
+    });
+
+    Charts.colChart("month", {
+        title: "This Month",
+        ttitle: "Total Referrals",
+        categories: ["Information Retrieval","Concrete Resource","Warm Handoff to Agency"],
+        data: {{thismonth|json|safe}}
+    });
+});
+</script>
+{% endblock %}
+
+{% block head %}
+{% include "funcs/charts.html" %}
+{% include "funcs/datepicker.html" %}
+{% endblock %}

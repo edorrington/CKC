@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Welcome to &ldquo;Connecting Kids to Coverage&rdquo;</title>
+    {% style "/css/bootstrap.min.css" %}
+    {% style "/css/bootstrap-theme.min.css" %}
+    {% style "/css/jquery.qtip.min.css" %}
+    {% style "/css/crisp.css" %}
+    {% style "/css/screen.css" %}
+    {% block head_css %}{% endblock %}
+
+    {% script "/js/jquery.min.js" %}
+    {% script "/js/jquery.qtip.min.js" %}
+    {% script "/js/bootstrap.min.js" %}
+    {% script "/js/util.js" %}
+    {% script "/js/lsdb.js" %}
+    {% block head_js %}{% endblock %}
+    {% block head %}{% endblock %}
+  </head>
+  <body>
+    {%  timing-start base %}
+    <!-- navbar -->
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="{{servlet-context}}/" title="Connecting Kids to Coverage" tabindex="-1">
+            Connecting Kids to Coverage
+          </a>
+        </div>
+        {% block menu %}
+          {% if user %}
+              {% include "templates/menu.html" %}
+          {% else %}
+          {% endif %}
+        {% endblock %}
+      </div>
+    </nav>
+
+    <div class="container" id="main">
+      {% block content %}
+      {% endblock %}
+    </div>
+    <footer>
+      <nav class="navbar navbar-default navbar-fixed-bottom">
+            <div class="container">
+                {% block footer %}
+                {% include "templates/footer.html" %}
+                {% endblock %}
+            </div>
+      </nav>
+    </footer>
+    {% include "templates/foot_scripts.html" %}
+    {% block foot %}{% endblock %}
+    {%  timing-end base %}
+  </body>
+</html>
