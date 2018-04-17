@@ -1,2 +1,3 @@
+resources/public/css/* linguist-vendored
 resources/public/js/* linguist-vendored
 resources/templates/* linguist-language=Selmer
