@@ -1,5 +1,5 @@
 (defproject ckc "0.9.0-SNAPSHOT"
-  :description "Alameda County Healthcare case management system"
+  :description "Alameda County Healthcare case management system (no longer used)"
   :ring {:handler ckc.handler/app, :init ckc.handler/init, :destroy ckc.handler/destroy}
   :ragtime {:migrations ragtime.sql.files/migrations, :database "jdbc:postgresql://localhost/ckc?user=ckc&password=ckc"}
   :plugins [[lein-ring "0.8.13"]
